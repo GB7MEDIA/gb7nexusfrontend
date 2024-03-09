@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 import { getAllDamagesAPI, getAllDamagesByUserIdAPI } from "../../axios/damage";
+
+import "../../css/general.css";
+import "../../css/table.css";
 
 export const DamagesScreen = ({ isLoggedIn, isAdmin, currentUserId }) => {
     const navigate = useNavigate();
@@ -38,20 +41,42 @@ export const DamagesScreen = ({ isLoggedIn, isAdmin, currentUserId }) => {
             <h1>Damages</h1>
             <div>
             {damages.length > 0 ? (
-                damages.map((damage) => (
-                    <div key={damage._id} style={{ marginBottom: '20px' }}>
-                        <p><strong>Title:</strong> {damage.title}</p>
-                        <p><strong>ObjectId:</strong> {damage.objectId}</p>
-                        <p><strong>AddressId:</strong> {damage.adressId}</p>
-                        <p><strong>Floor/Elevator:</strong> {damage.flo}</p>
-                        <p><strong>Remarks:</strong> {damage.remarks}</p>
-                        <p><Link to={`/damages/${damage._id}`}>Show Damage</Link></p>
-                        {isAdmin && (<p><Link to={`/damages/${damage._id}/edit`}>Edit Damage</Link></p>)}
-                    </div>
-                ))
-            ) : (
-                <p>No Damages found.</p>
-            )}
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>User</th>
+                                <th>Object</th>
+                                <th>Adress</th>
+                                <th>Floor/Elevator</th>
+                                <th>Remarks</th>
+                                <th>Damage Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                    <tbody>
+                        {damages.map((damage) => (
+                            <tr key={damage.id}>
+                                <td>{damage.title}</td>
+                                <td>{damage.user.name}</td>
+                                <td>{damage.object.objectname}</td>
+                                <td>{damage.adress.adress}</td>
+                                <td>{damage.floor}</td>
+                                <td>{damage.remarks}</td>
+                                <td>{damage.damageStatus}</td>
+                                <td>
+                                    <button
+                                        onClick={() => navigate(`/damages/${damage.id}`)}
+                                    >Show Damage</button>
+                                    {isAdmin &&(<button
+                                        onClick={() => navigate(`/damages/${damage.id}/edit`)}
+                                    >Edit Damage</button>)}
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+                ) : (<p>There are no damages to show ...</p>)}
             </div>
         </>
     );

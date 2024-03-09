@@ -5,6 +5,9 @@ import { validEmailRegex } from "../../helpers/regex";
 
 import { forgotPasswordAPI } from "../../axios/auth";
 
+import "../../css/general.css";
+import "../../css/form.css";
+
 export const ForgotPasswordScreen = ({ isLoggedIn }) => {
     const navigate = useNavigate();
 
@@ -48,10 +51,13 @@ export const ForgotPasswordScreen = ({ isLoggedIn }) => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                 />
-                <input type="submit" value="Forgot Password" />
+                <input
+                    type="submit"
+                    value="Forgot Password"
+                />
                 {error && (<p>{error}</p>)}
+                <Link to="/login">Go back to login!</Link>
             </form>
-            <Link to="/login">Go back to login!</Link>
         </>
     );
 };

@@ -4,6 +4,9 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { getDamageByIdAPI, editDamageByIdAPI } from "../../axios/damage";
 import { getAllObjectsAPI, getObjectByIdAPI, getObjectAdressesByObjectIdAPI } from "../../axios/object";
 
+import "../../css/general.css";
+import "../../css/form.css";
+
 export const EditDamageScreen= ({ isLoggedIn, isAdmin }) => {
     const navigate = useNavigate();
     const { damageId } = useParams();
@@ -22,9 +25,7 @@ export const EditDamageScreen= ({ isLoggedIn, isAdmin }) => {
 
     const [page, setPage] = useState(1);
     const [formData, setFormData] = useState({
-        damageId: '',
         title: '',
-        image: null,
         object: {
             _id: '',
             objectname: ''
@@ -59,8 +60,7 @@ export const EditDamageScreen= ({ isLoggedIn, isAdmin }) => {
             if (damageId) {
                 try {
                     const damageData = await getDamageByIdAPI(damageId);
-                    const objectData = await getObjectByIdAPI(damageData.data.data.damage.objectId);
-                    const addressesData = await getObjectAdressesByObjectIdAPI(objectData.data.data.object._id);
+                    const addressesData = await getObjectAdressesByObjectIdAPI(damageData.data.data.object.id);
                     setObjectAdresses(addressesData.data.data.adresses);
                     const selectedAddress = addressesData.data.data.adresses.filter(adress => adress._id === damageData.data.data.damage.adressId);
                     setFloors(selectedAddress[0].floors);
@@ -70,12 +70,12 @@ export const EditDamageScreen= ({ isLoggedIn, isAdmin }) => {
                         damageId: damageId,
                         title: damageData.data.data.damage.title,
                         object: {
-                            _id: objectData.data.data.object._id,
-                            objectname: objectData.data.data.object.objectname
+                            id: damageData.data.data.damage.object.id,
+                            objectname: damageData.data.data.damage.objectname
                         },
                         adress: {
-                            _id: selectedAddress[0]._id,
-                            adress: selectedAddress[0].adress
+                            id: damageData.data.data.damage.adress.id,
+                            adress: damageData.data.data.damage.adress.adress
                         },
                         floorOrElevator: damageData.data.data.damage.floor,
                         remarks: damageData.data.data.damage.remarks,
@@ -107,24 +107,6 @@ export const EditDamageScreen= ({ isLoggedIn, isAdmin }) => {
                 setError('The title can not be left empty!');
                 return;
             }
-            if (!formData.object) {
-                if (!formData.object._id) {
-                    setError('The object id can not be left empty!');
-                    return;
-                }
-            }
-
-            if (!formData.adress) {
-                if (!formData.adress._id) {
-                    setError('The adress id can not be left empty!');
-                    return;
-                }
-            }
-
-            if (!formData.floorOrElevator) {
-                setError('The floor or elevator can not be left empty!');
-                return;
-            }
 
             if (!formData.remarks) {
                 setError('The remarks can not be left empty!');
@@ -148,8 +130,8 @@ export const EditDamageScreen= ({ isLoggedIn, isAdmin }) => {
             <h1>Edit Damage</h1>
             {page === 1 && (
                 <form>
-                    <h1>Title</h1><br />
-                    <input type="text" name="title" value={formData.title} onChange={handleChange} /><br />
+                    <h2>Title</h2><br />
+                    <input type="text" name="title" placeholder="Title ..." value={formData.title} onChange={handleChange} /><br />
                     <button type="button" onClick={nextPage}>Next</button>
                     {error && (<p>{error}</p>)}
                 </form>
@@ -171,9 +153,9 @@ export const EditDamageScreen= ({ isLoggedIn, isAdmin }) => {
                         ) : (<option disabled>No Objects available</option>)}
                     </select><br />
                     <select name="adress"
-                    value={JSON.stringify(formData.adress)}
-                    onChange={ (e) => setFormData({...formData, adress: JSON.parse(e.target.value) }) }
-                    disabled={true}
+                        value={JSON.stringify(formData.adress)}
+                        onChange={ (e) => setFormData({...formData, adress: JSON.parse(e.target.value) }) }
+                        disabled={true}
                     >
                         <option value="">Select Address</option>
                         {objectAdresses.length > 0 ? (
@@ -184,12 +166,7 @@ export const EditDamageScreen= ({ isLoggedIn, isAdmin }) => {
                             <option disabled>No object adresses exist ...</option>
                         )}
                     </select><br />
-                    <select
-                        name="floorOrElevator"
-                        value={formData.floorOrElevator}
-                        onChange={handleChange}
-                        disabled={true}
-                    >
+                    <select name="floorOrElevator" value={formData.floorOrElevator} onChange={handleChange} disabled={true}>
                         <option value="">Stockwerk oder Aufzug</option>
                         {floors.length > 0 ? (
                             floors.map((floor, index) => (
@@ -199,17 +176,27 @@ export const EditDamageScreen= ({ isLoggedIn, isAdmin }) => {
                             <option disabled>No floors exist ...</option>
                         )}
                     </select><br />
-                    <button type="button" onClick={prevPage}>Back</button>
-                    <button type="button" onClick={nextPage}>Next</button>
+                    <div className={`button_div`}>
+                        <button type="button" onClick={prevPage}>Back</button>
+                        <button type="button" onClick={nextPage}>Next</button>
+                    </div>
+
                     {error && (<p>{error}</p>)}
                 </form>
             )}
             {page === 3 && (
                 <form>
-                    <h1>Remarks</h1><br />
-                    <textarea name="remarks" placeholder="Remarks ..." value={formData.remarks} onChange={handleChange}></textarea><br />
-                    <button type="button" onClick={prevPage}>Back</button>
-                    <button type="button" onClick={nextPage}>Next</button>
+                    <h2>Remarks</h2><br />
+                    <textarea
+                        name="remarks"
+                        placeholder="Remarks ..."
+                        value={formData.remarks}
+                        onChange={handleChange}
+                    ></textarea><br />
+                    <div className={`button_div`}>
+                        <button type="button" onClick={prevPage}>Back</button>
+                        <button type="button" onClick={nextPage}>Next</button>
+                    </div>
                     {error && (<p>{error}</p>)}
                 </form>
             )}
@@ -226,24 +213,28 @@ export const EditDamageScreen= ({ isLoggedIn, isAdmin }) => {
                         <option value="inProgress">In Progress ...</option>
                         <option value="finished">Finished</option>
                     </select><br />
-                    <button type="button" onClick={prevPage}>Back</button>
-                    <button type="button" onClick={nextPage}>Next</button>
+                    <div className={`button_div`}>
+                        <button type="button" onClick={prevPage}>Back</button>
+                        <button type="button" onClick={nextPage}>Next</button>
+                    </div>
                     {error && (<p>{error}</p>)}
                 </form>
             )}
             {page === 5 && (
                 <form onSubmit={handleEditDamage}>
-                    <h1>Summary</h1><br />
-                    <p>Title: {formData.title}</p><br />
-                    <p>Object: {formData.object.objectname}</p><br />
-                    <p>Adress: {formData.adress.adress}</p><br />
-                    <p>Floor or Elevator: {formData.floorOrElevator}</p><br />
-                    <p>Remarks: {formData.remarks}</p><br />
-                    <p>Damage Status: {formData.damageStatus}</p><br />
+                <h2>Summary</h2><br />
+                <p>Title: {formData.title}</p><br />
+                <p>Object: {formData.object.objectname}</p><br />
+                <p>Address: {formData.adress.adress}</p><br />
+                <p>Floor or Elevator: {formData.floorOrElevator}</p><br />
+                <p>Remarks: {formData.remarks}</p><br />
+                <p>Remarks: {formData.damageStatus}</p><br />
+                <div className={`button_div`}>
                     <button type="button" onClick={prevPage}>Back</button>
                     <input type="submit" value="Save" />
-                    {error && (<p>{error}</p>)}
-                </form>
+                </div>
+                {error && (<p>{error}</p>)}
+            </form>
             )}
         </>
     );

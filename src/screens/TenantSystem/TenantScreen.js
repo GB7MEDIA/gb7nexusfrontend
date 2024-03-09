@@ -3,6 +3,9 @@ import { useNavigate, Link } from 'react-router-dom';
 
 import { getAllTenantsAPI } from "../../axios/tenant";
 
+import "../../css/general.css";
+import "../../css/table.css";
+
 export const TenantsScreen = ({ isLoggedIn, isAdmin }) => {
     const navigate = useNavigate();
 
@@ -35,14 +38,38 @@ export const TenantsScreen = ({ isLoggedIn, isAdmin }) => {
         <>
             <h1>Tenants:</h1>
             {tenants.length > 0 ? (
-                tenants.map((tenant) => (
-                    <div key={tenant._id}>
-                        <Link to={`/tenants/${tenant._id}`}>{tenant.companyname}</Link>
-                    </div>
-                ))
-            ) : (
-                <p>No tenants found.</p>
-            )}
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Companyname</th>
+                                <th>Object</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {tenants.map((tenant) => (
+                                <tr key={tenant.id}>
+                                    <td>{tenant.companyname}</td>
+                                    <td>
+                                        <Link
+                                            to={`/objects/${tenant.object.id}`}
+                                        >
+                                        {tenant.object.objectname}
+                                        </Link>
+                                    </td>
+                                    <td>
+                                        <button
+                                            onClick={() => navigate(`/tenants/${tenant.id}`)}
+                                        >Show Tenant</button>
+                                        <button
+                                            onClick={() => navigate(`/tenants/${tenant.id}/edit`)}
+                                        >Edit Tenant</button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                ) : (<p>There are no tenants to show ...</p>)}
         </>
     );
 };

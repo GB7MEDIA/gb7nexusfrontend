@@ -3,6 +3,8 @@ import { useNavigate, useLocation, Link } from 'react-router-dom';
 
 import { activateAccountAPI } from "../../axios/auth";
 
+import "../../css/general.css";
+
 export const ActivateAccountScreen = ({ isLoggedIn }) => {
     const navigate = useNavigate();
     const location = useLocation();
@@ -51,7 +53,17 @@ export const ActivateAccountScreen = ({ isLoggedIn }) => {
         <>
             <h1>Konto aktivieren</h1>
             <p>Status: {activationStatus}</p>
-            <Link to="/login">Go back to login!</Link>
+            <Link
+                to="/login"
+                style={{
+                    marginRight: '10px',
+                    backgroundColor: '#333',
+                    color: '#ffffff',
+                    border: 'none',
+                    padding: '5px 10px',
+                    cursor: 'pointer',
+                }}
+            >Go back to login!</Link>
         </>
     );
 };

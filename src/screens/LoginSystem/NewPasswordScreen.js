@@ -5,6 +5,9 @@ import { validPasswordRegex } from "../../helpers/regex";
 
 import { newPasswordAPI } from "../../axios/auth";
 
+import "../../css/general.css";
+import "../../css/form.css";
+
 export const NewPasswordScreen = ({ isLoggedIn }) => {
     const navigate = useNavigate();
     const location = useLocation();
@@ -85,10 +88,15 @@ export const NewPasswordScreen = ({ isLoggedIn }) => {
                     value={repeatNewPassword}
                     onChange={(e) => setRepeatNewPassword(e.target.value)}
                 />
-                <input type="submit" value="Save" />
+                <input
+                    type="submit"
+                    value="Save"
+                />
                 {error && (<p>{error}</p>)}
+                <Link
+                    to="/login"
+                >Go back to login!</Link>
             </form>
-            <Link to="/login">Go back to login!</Link>
         </>
     );
 };

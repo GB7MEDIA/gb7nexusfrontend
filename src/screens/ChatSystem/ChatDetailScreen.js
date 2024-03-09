@@ -4,6 +4,9 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { getChatByIdAPI, getChatUsersByChatIdAPI, getChatMessagesByChatIdAPI, createChatMessageByChatIdAPI, editChatMessageByIdAPI, deleteChatByIdAPI, deleteChatMessageByIdAPI } from "../../axios/chat";
 import { getUserByIdAPI } from "../../axios/user";
 
+import "../../css/general.css";
+import "../../css/form.css";
+
 export const ChatDetailScreen = ({ isLoggedIn, currentUserId }) => {
     const navigate = useNavigate();
     const { chatId } = useParams();
@@ -30,12 +33,7 @@ export const ChatDetailScreen = ({ isLoggedIn, currentUserId }) => {
             if (chatId) {
                 try {
                     const chatData = await getChatByIdAPI(chatId);
-                    const chatInfo = chatData.data.data.chat;
-                    const createdByUser = await getUserByIdAPI(chatInfo.createdBy);
-                    setChat({
-                        ...chatInfo,
-                        createdBy: createdByUser.data.response.data.data.user.name
-                    });
+                    setChat(chatData.data.data.chat);
                     const chatUsersData = await getChatUsersByChatIdAPI(chatId);
                     setChatUsers(chatUsersData.data.data.users);
                     const chatMessagesData = await getChatMessagesByChatIdAPI(chatId);
@@ -51,12 +49,16 @@ export const ChatDetailScreen = ({ isLoggedIn, currentUserId }) => {
         const checkUser = () => {
             if (currentUserId) {
                 const user = chatUsers.find(user => user._id === currentUserId);
-                return user ? user.isAdmin : false;
+                if (user) {
+                    return user.isAdmin;
+                } else {
+                    return false;
+                }
             }
             return false;
         };
 
-        const currentUserIsChatAdmin = checkUser(); 
+        const currentUserIsChatAdmin = checkUser();
         setIsChatAdmin(currentUserIsChatAdmin);
         
     }, [chatUsers, currentUserId]);
@@ -106,16 +108,16 @@ export const ChatDetailScreen = ({ isLoggedIn, currentUserId }) => {
     return (
         <>
             <h1>{chat.chatname}</h1>
-            <p>Chat created by {chat.createdBy}</p>
-            <Link to={`/chats/${chat._id}/edit`}>Edit Chat</Link>
+            <p>Chat created by {chat.createdBy.name}</p>
+            {isChatAdmin && (<Link to={`/chats/${chatId}/edit`}>Edit Chat</Link>)}
             {isChatAdmin && (<button onClick={() => handleDeleteChat(chatId)}>Delete</button>)}
             <ul>
                 {chatMessages.length > 0 ? (
                     chatMessages.map(message => (
-                        <li key={message._id}>
-                            <p><strong>{message.userId}</strong> - {message.text}</p>
-                            {currentUserId === message.userId && <button onClick={() => handleEditClick(message._id, message.text)}>Edit</button>}
-                            {currentUserId === message.userId && <button onClick={() => handleDeleteMessage(message._id)}>Delete</button>}
+                        <li key={message.id}>
+                            <p><strong>{message.user.name}</strong> - {message.text}</p>
+                            {currentUserId === message.user.id && <button onClick={() => handleEditClick(message.id, message.text)}>Edit</button>}
+                            {currentUserId === message.user.id && <button onClick={() => handleDeleteMessage(message._id)}>Delete</button>}
                         </li>
                     ))
                 ) : (

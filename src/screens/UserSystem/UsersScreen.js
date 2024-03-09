@@ -1,39 +1,42 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-
 import { getAllUsersAPI, deleteUserByIdAPI } from "../../axios/user";
+
+import "../../css/general.css";
+import "../../css/table.css";
 
 export const UsersScreen = ({ isLoggedIn, isAdmin, currentUserId }) => {
     const navigate = useNavigate();
+    const [users, setUsers] = useState([]);
+
     useEffect(() => {
         if (!isLoggedIn) {
             navigate("/login");
-        }
-    }, [isLoggedIn, navigate]);
-
-    useEffect(() => {
-        if (!isAdmin) {
+        } else if (!isAdmin) {
             navigate("/");
+        } else {
+            const fetchUsers = async () => {
+                try {
+                    const usersData = await getAllUsersAPI();
+                    setUsers(usersData.data.response.data.data.users);
+                } catch (error) {
+                    console.error("Failed to fetch users", error);
+                }
+            };
+            fetchUsers();
         }
-    });
-    
-    const [users, setUsers] = useState([]);
-    useEffect(() => {
-        if (isAdmin) {
-            (async () => {
-                const usersData = await getAllUsersAPI();
-                setUsers(usersData.data.response.data.data.users);
-            })()
-        }
-    }, [isAdmin]);
+    }, [isLoggedIn, isAdmin, navigate]);
 
-    const handleDeleteUser = async (userId, e) => {
-        e.preventDefault();
-        const response = await deleteUserByIdAPI(userId);
-        if (response.success) {
-            navigate(`/users`);
+    const handleDeleteUser = async (userId) => {
+        try {
+            const response = await deleteUserByIdAPI(userId);
+            if (response.success) {
+                navigate(`/users`);
+            }
+        } catch (error) {
+            console.error("Failed to delete user", error);
         }
-    }
+    };
 
     return (
         <>
@@ -41,7 +44,6 @@ export const UsersScreen = ({ isLoggedIn, isAdmin, currentUserId }) => {
             <table>
                 <thead>
                     <tr>
-                        <th>ID</th>
                         <th>Name</th>
                         <th>Email</th>
                         <th>Phonenumber</th>
@@ -51,18 +53,16 @@ export const UsersScreen = ({ isLoggedIn, isAdmin, currentUserId }) => {
                     </tr>
                 </thead>
                 <tbody>
-                    {users.map(user => (
-                        <tr key={user._id}>
-                            <td>{user._id}</td>
+                    {users.filter(user => user.id !== currentUserId).map((user) => (
+                        <tr key={user.id}>
                             <td>{user.name}</td>
                             <td>{user.email}</td>
                             <td>{user.phonenumber}</td>
                             <td>{user.role}</td>
                             <td>{user.tfaSetting}</td>
                             <td>
-                                {user._id !== currentUserId && (<button onClick={() => navigate(`/users/${user._id}/edit`)}>Edit User</button>)}
-                                {user._id === currentUserId && (<button onClick={() => navigate(`/settings`)}>Settings</button>)}
-                                {user._id !== currentUserId && (<button onClick={(e) => handleDeleteUser(user._id, e) }>Delete User</button>)}
+                                <button onClick={() => navigate(`/users/${user.id}/edit`)}>Edit User</button>
+                                <button onClick={() => handleDeleteUser(user.id)}>Delete User</button>
                             </td>
                         </tr>
                     ))}
@@ -71,3 +71,4 @@ export const UsersScreen = ({ isLoggedIn, isAdmin, currentUserId }) => {
         </>
     );
 };
+

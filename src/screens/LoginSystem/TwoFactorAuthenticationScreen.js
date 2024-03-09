@@ -3,6 +3,8 @@ import { useNavigate, useLocation, Link } from 'react-router-dom';
 
 import { tfaAPI } from "../../axios/auth";
 
+import "../../css/general.css";
+
 export const TwoFactorAuthenticationScreen = ({ isLoggedIn, setIsLoggedIn}) => {
     const navigate = useNavigate();
     const location = useLocation();
@@ -53,7 +55,17 @@ export const TwoFactorAuthenticationScreen = ({ isLoggedIn, setIsLoggedIn}) => {
         <>
             <h1>Zwei-Faktor-Authentisierung:</h1>
             <p>Status: {tfaStatus}</p>
-            <Link to="/login">Go back to login!</Link>
+            <Link
+                to="/login"
+                style={{
+                    marginRight: '10px',
+                    backgroundColor: '#333',
+                    color: '#ffffff',
+                    border: 'none',
+                    padding: '5px 10px',
+                    cursor: 'pointer',
+                }}
+            >Go back to login!</Link>
         </>
     );
 };

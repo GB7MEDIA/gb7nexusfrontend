@@ -27,10 +27,10 @@ export const getDamageByIdAPI = async (damageId) => {
     }
 }
 
-export const createDamageAPI = async (title, objectId, adressId, floor, remarks) => {
+export const createDamageAPI = async (title, mediaUrl, objectId, adressId, floor, remarks) => {
     try {
         const response = axiosInstanceWithAuth.post(`/damages/one/create`, {
-            title, objectId, adressId, floor, remarks
+            title, mediaUrl, objectId, adressId, floor, remarks
         });
         return response;
     } catch (error) {
@@ -38,10 +38,10 @@ export const createDamageAPI = async (title, objectId, adressId, floor, remarks)
     }
 }
 
-export const editDamageByIdAPI = async (damageId, title, floor, remarks, damageStatus = "received") => {
+export const editDamageByIdAPI = async (damageId, title, remarks, damageStatus = "received") => {
     try {
         const response = axiosInstanceWithAuth.put(`/damages/one/${damageId}/edit`, {
-            title, floor, remarks, damageStatus
+            title, remarks, damageStatus
         });
         return response;
     } catch (error) {

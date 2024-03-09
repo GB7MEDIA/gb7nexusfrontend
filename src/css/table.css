@@ -1,0 +1,71 @@
+table {
+        width: 100%;
+        background-color: #333;
+        color: #ffffff;
+        border-collapse: collapse;
+        margin-top: 20px;
+}
+
+table a {
+    text-decoration: none;
+}
+
+tr th:first-of-type {
+    text-align: left;
+    padding: 10px 20px;
+}
+tr th {
+    text-align: center;
+    padding: 10px 20px;
+}
+tr th:last-of-type {
+    text-align: right;
+    padding: 10px 20px;
+}
+
+tbody tr {
+    background-color: #ffffff;
+    color: #333;
+    border-bottom: 1px solid #333;
+}
+
+tbody tr:nth-of-type(even) {
+    background-color: #8c8c8c;
+    color: #fff;
+    border-bottom: 1px solid #333;
+}
+
+tbody tr:last-of-type {
+    border-bottom: none;
+}
+
+tbody tr td:first-of-type {
+    text-align: left;
+    padding: 10px 10px;
+}
+tbody tr td {
+    text-align: center;
+    padding: 10px 10px;
+}
+tbody tr td:last-of-type {
+    text-align: right;
+    padding: 10px 10px;
+}
+
+tbody tr td button, tbody tr td a {
+    margin-right: 10px;
+    background-color: #333;
+    color: #ffffff;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+tbody tr:nth-of-type(even) td button, tbody tr:nth-of-type(even) td a {
+    margin-right: 10px;
+    background-color: #fff;
+    color: #333;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+}

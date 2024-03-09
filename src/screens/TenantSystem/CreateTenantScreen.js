@@ -4,6 +4,9 @@ import { useNavigate } from 'react-router-dom';
 import { createTenantAPI } from "../../axios/tenant";
 import { getAllObjectsAPI } from "../../axios/object";
 
+import "../../css/general.css";
+import "../../css/form.css";
+
 export const CreateTenantScreen = ({ isLoggedIn, isAdmin, currentUserId, currentUser }) => {
     const navigate = useNavigate();
 
@@ -60,9 +63,19 @@ export const CreateTenantScreen = ({ isLoggedIn, isAdmin, currentUserId, current
     return (
         <>
             <h1>Create Tenant</h1>
-            <form onSubmit={handleCreateTenant}>
-                <input type="text" placeholder="Companyname ..." value={companyname} onChange={(e) => setCompanyname(e.target.value)} /><br />
-                <select value={objectId} onChange={(e) => setObjectId(e.target.value)}>
+            <form 
+                onSubmit={handleCreateTenant}
+            >
+                <input
+                    type="text"
+                    placeholder="Companyname ..."
+                    value={companyname}
+                    onChange={(e) => setCompanyname(e.target.value)}
+                /><br />
+                <select
+                    value={objectId}
+                    onChange={(e) => setObjectId(e.target.value)}
+                >
                     <option value="">Select Object</option>
                     {objects.length > 0 ? (
                         objects.map((object) => (
@@ -70,7 +83,10 @@ export const CreateTenantScreen = ({ isLoggedIn, isAdmin, currentUserId, current
                         ))
                     ) : (<option disabled>No Objects available</option>)}
                 </select><br />
-                <input type="submit" value="Create" />
+                <input
+                    type="submit"
+                    value="Create"
+                />
                 {error && (<p style={{ color: 'red' }}>{error}</p>)}
             </form>
         </>

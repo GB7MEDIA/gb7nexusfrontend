@@ -1,376 +1,427 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 
-import { getAllObjectsAPI, getObjectByIdAPI } from "../axios/object";
-import { getAllTenantsAPI, getTenantByUserIdAPI, getTenantByIdAPI } from "../axios/tenant";
-import { getAllUsersAPI } from "../axios/user";
-import { getAllDamagesAPI, getAllDamagesByUserIdAPI } from "../axios/damage";
-import { getAllChannelsAPI, getAllChannelsByUserIdAPI } from "../axios/channel";
+import {
+    getAllObjectsAPI,
+    getObjectByIdAPI
+} from "../axios/object";
+
+import {
+    getAllTenantsAPI,
+    getTenantByUserIdAPI,
+    getTenantByIdAPI
+} from "../axios/tenant";
+
+import {
+    getAllUsersAPI
+} from "../axios/user";
+
+import {
+    getAllDamagesAPI,
+    getAllDamagesByUserIdAPI,
+    deleteDamageByIdAPI
+} from "../axios/damage";
+
+import {
+    createChatAPI
+} from "../axios/chat";
+
+import {
+    getAllChannelsAPI,
+    getAllChannelsByUserIdAPI
+} from "../axios/channel";
+
+import {
+    getAllProductsAPI
+} from "../axios/marketPlace";
+
+import "../css/general.css";
+import "../css/table.css";
 
 export const DashboardScreen = ({ isLoggedIn, isAdmin, currentUserId }) => {
-    const navigate = useNavigate();
-    useEffect(() => {
-        if (!isLoggedIn) {
-            navigate("/login");
+  const navigate = useNavigate();
+
+  const [data, setData] = useState({
+    objects: [],
+    object: null,
+    tenants: [],
+    tenant: null,
+    users: [],
+    damages: [],
+    channels: [],
+    products: [],
+  });
+
+  useEffect(() => {
+    if (!isLoggedIn) {
+      navigate('/login');
+    }
+  }, [isLoggedIn, navigate]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (isAdmin) {
+        const [objectsData, tenantsData, usersData, damagesData, channelsData, productsData] = await Promise.all([
+          getAllObjectsAPI(),
+          getAllTenantsAPI(),
+          getAllUsersAPI(),
+          getAllDamagesAPI(),
+          getAllChannelsAPI(),
+          getAllProductsAPI(),
+        ]);
+        setData((prevState) => ({
+          ...prevState,
+          objects: objectsData.data.data.objects,
+          tenants: tenantsData.data.data.tenants,
+          users: usersData.data.response.data.data.users,
+          damages: damagesData.data.data.damages,
+          channels: channelsData.data.data.channels,
+          products: productsData.data.data.products,
+        }));
+      } else {
+        const tenantIdData = await getTenantByUserIdAPI(currentUserId);
+        if (tenantIdData.data.data.tenantId.tenantId) {
+          const tenantData = await getTenantByIdAPI(tenantIdData.data.data.tenantId.tenantId);
+          if (tenantData.data.data.tenant.object.id) {
+            const objectData = await getObjectByIdAPI(tenantData.data.data.tenant.object.id);
+            setData((prevState) => ({
+                ...prevState,
+                tenant: tenantData.data.data.tenant,
+                object: objectData.data.data.object,
+            }));
+          }
         }
-    }, [isLoggedIn, navigate]);
+        const [damagesData, channelsData, productsData] = await Promise.all([
+          getAllDamagesByUserIdAPI(currentUserId),
+          getAllChannelsByUserIdAPI(currentUserId),
+          getAllProductsAPI(),
+        ]);
+        setData((prevState) => ({
+          ...prevState,
+          damages: damagesData.data.data.damages,
+          channels: channelsData.data.data.channels,
+          products: productsData.data.data.products,
+        }));
+      }
+    };
 
-    const [objects, setObjects] = useState([]);
-    useEffect(() => {
-        if (isAdmin) {
-            (async () => {
-                const objectsData = await getAllObjectsAPI();
-                setObjects(objectsData.data.data.objects);
-            })()
-        }
-    }, [isAdmin]);
+    if (isLoggedIn && currentUserId) {
+      fetchData();
+    }
+  }, [isLoggedIn, isAdmin, currentUserId]);
 
-    const [object, setObject] = useState([]);
+  const handleDeleteDamage = async (damageId) => {
+    const response = await deleteDamageByIdAPI(damageId);
+    if (response) {
+      const updatedDamages = data.damages.filter((damage) => damage.id !== damageId);
+      setData((prevState) => ({ ...prevState, damages: updatedDamages }));
+    }
+  };
 
-    const [tenants, setTenants] = useState([]);
-    useEffect(() => {
-        if (isAdmin) {
-            (async () => {
-                const tenantsData = await getAllTenantsAPI();
-                setTenants(tenantsData.data.data.tenants);
-            })()
-        }
-    }, [isAdmin]);
+  const handleInterestedInProduct = async ( productId, productTitle, productUserId, currentUserId ) => {
+    if (productUserId === currentUserId) {
+        return;
+    }
+    const users = [
+        [productUserId, true],
+        [currentUserId, false]
+    ];
 
-    const [tenant, setTenant] = useState([]);
-    useEffect(() => {
-        if (isAdmin === false) {
-            (async () => {
-                if (currentUserId) {
-                    const tenantIdData = await getTenantByUserIdAPI(currentUserId);
-                    const tenantData = await getTenantByIdAPI(tenantIdData.data.data.tenantId.response[0].tenantId);
-                    setTenant(tenantData.data.data.tenant);
-                }
-            })()
-        }
-    }, [currentUserId, isAdmin]);
+    if (!productTitle) {
+        return;
+    }
 
-    useEffect(() => {
-        if (tenant) {
-            (async () => {
-                if (tenant.objectId) {
-                    const objectData = await getObjectByIdAPI(tenant.objectId);
-                    setObject(objectData.data.data.object);
-                }
-            })()
-        }
-    }, [tenant]);
+    const title = "Product: " + productTitle + "-" + productId;
 
-    const [users, setUsers] = useState([]);
-    useEffect(() => {
-        if (isAdmin) {
-            (async () => {
-                const usersData = await getAllUsersAPI();
-                setUsers(usersData.data.response.data.data.users);
-            })()
-        }
-    }, [isAdmin]);
+    const response = await createChatAPI(title, users, 'everyone');
+    if (response) {
+        navigate(`/chats`);
+    }
+  }
 
-    const [damages, setDamages] = useState([]);
-    useEffect(() => {
-        if (isAdmin) {
-            (async () => {
-                const damagesData = await getAllDamagesAPI();
-                setDamages(damagesData.data.data.damages);
-            })()
-        } else {
-            (async () => {
-                if (currentUserId) {
-                    const damagesData = await getAllDamagesByUserIdAPI(currentUserId);
-                    setDamages(damagesData.data.data.damages);
-                }
-            })()
-        }
-    }, [currentUserId, isAdmin]);
-
-    const [channels, setChannels] = useState([]);
-    useEffect(() => {
-        (async () => {
-            if (isAdmin) {
-                const channelsData = await getAllChannelsAPI();
-                setChannels(channelsData.data.data.channels);
-            } else {
-                if (currentUserId) {
-                    const channelsData = await getAllChannelsByUserIdAPI(currentUserId);
-                    setChannels(channelsData.data.data.channels);
-                }
-            }
-        })()
-    }, [currentUserId, isAdmin]);
-    
+  const renderAdminDashboard = () => {
     return (
-        <>
-        {isLoggedIn && (
-        <>
-            {isAdmin ? (
-                <>
-                <h2>Admin Dashboard</h2>
-                <h3>Objects Table:</h3>
-                {objects.length > 0 ? (
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Id</th>
-                            <th>Objectname</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {objects.map((objectsObject) => (
-                        <tr key={objectsObject._id}>
-                            <td>{objectsObject._id}</td>
-                            <td>{objectsObject.objectname}</td>
-                            <td>
-                                <button onClick={() => navigate(`/objects/${objectsObject._id}`)}>Show Object</button>
-                                <button onClick={() => navigate(`/objects/${objectsObject._id}/edit`)}>Edit Object</button>
-                            </td>
-                        </tr>
-                        ))}
-                    </tbody>
-                </table>
-                ) : (
-                <p>There are no objects to show ...</p>
-                )}
-                <h3>Tenants Table:</h3>
-                {tenants.length > 0 ? (
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Id</th>
-                                <th>Companyname</th>
-                                <th>ObjectId</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {tenants.map((tenant) => (
-                                <tr key={tenant._id}>
-                                    <td>{tenant._id}</td>
-                                    <td>{tenant.companyname}</td>
-                                    <td><Link to={`/objects/${tenant.objectId}`}>{tenant.objectId}</Link></td>
-                                    <td>
-                                        <button onClick={() => navigate(`/tenants/${tenant._id}`)}>Show Tenant</button>
-                                        <button onClick={() => navigate(`/tenants/${tenant._id}/edit`)}>Edit Tenant</button>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                ) : (<p>There are no tenants to show ...</p>)}
-                <h3>Users Table:</h3>
-                {users.length > 0 ? (
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Id</th>
-                                <th>Name</th>
-                                <th>Email</th>
-                                <th>Phonenumber</th>
-                                <th>Role</th>
-                                <th>tfaSetting</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {users.map((user) => (
-                                <tr key={user._id}>
-                                    <td>{user._id}</td>
-                                    <td>{user.name}</td>
-                                    <td>{user.email}</td>
-                                    <td>{user.phonenumber}</td>
-                                    <td>{user.role}</td>
-                                    <td>{user.tfaSetting}</td>
-                                    <td>
-                                        <button onClick={() => navigate(`/users/${user._id}/edit`)}>Edit User</button>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                ) : (<p>There are no users to show ...</p>)}
-                <h3>Damages Table:</h3>
-                {damages.length > 0 ? (
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Id</th>
-                                <th>Title</th>
-                                <th>userId</th>
-                                <th>objectId</th>
-                                <th>adressId</th>
-                                <th>floor</th>
-                                <th>Remarks</th>
-                                <th>Damage Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                    <tbody>
-                        {damages.map((damage) => (
-                            <tr key={damage._id}>
-                                <td>{damage._id}</td>
-                                <td>{damage.title}</td>
-                                <td>{damage.userId}</td>
-                                <td>{damage.objectId}</td>
-                                <td>{damage.adressId}</td>
-                                <td>{damage.floor}</td>
-                                <td>{damage.remarks}</td>
-                                <td>{damage.damageStatus}</td>
-                                <td>
-                                    <button onClick={() => navigate(`/damages/${damage._id}`)}>Show Damage</button>
-                                    <button onClick={() => navigate(`/damages/${damage._id}/edit`)}>Edit Damage</button>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-                ) : (<p>There are no damages to show ...</p>)}
-                <h3>Channels Table:</h3>
-                {channels.length > 0 ? (
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Id</th>
-                                <th>Channelname</th>
-                                <th>Channelrights</th>
-                                <th>Created By</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        {channels.map((channel) => (
-                            <tr key={channel._id}>
-                                <td>{channel._id}</td>
-                                <td>{channel.channelname}</td>
-                                <td>{channel.channelrights}</td>
-                                <td>{channel.createdBy}</td>
-                                <td>
-                                    <Link to={`/channels/${channel._id}`}>Show Channel</Link>
-                                    <Link to={`/channels/${channel._id}/edit`}>Edit Channel</Link>
-                                </td>
-                            </tr>
-                        ))}
-                        </tbody>
-                    </table>
-                ) : (<p>There are no channels to show ...</p>)}
-                </>
-            ) : (
-                <>
-                <h2>User Dashboard</h2>
-                <h3>Object Table:</h3>
-                {object ? (
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Id</th>
-                                <th>Objectname</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr key={object._id}>
-                                <td>{object._id}</td>
-                                <td>{object.objectname}</td>
-                                <td>
-                                    <button onClick={() => navigate(`/objects/${object._id}`)}>Show Object</button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                ) : (<p>There is no object to show ...</p>)}
-                <h3>Tenant Table:</h3>
-                {tenant ? (
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Id</th>
-                                <th>Companyname</th>
-                                <th>ObjectId</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr key={tenant._id}>
-                                <td>{tenant._id}</td>
-                                <td>{tenant.companyname}</td>
-                                <td><Link to={`/objects/${tenant.objectId}`}>{tenant.objectId}</Link></td>
-                                <td>
-                                    <button onClick={() => navigate(`/tenants/${tenant._id}`)}>Show Tenant</button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                ) : (<p>There is no tenant to show ...</p>)}
-                <h3>Damages Table:</h3>
-                {damages.length > 0 ? (
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Id</th>
-                                <th>Title</th>
-                                <th>userId</th>
-                                <th>objectId</th>
-                                <th>adressId</th>
-                                <th>floor</th>
-                                <th>Remarks</th>
-                                <th>Damage Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        {damages.map((damage) => (
-                            <tr key={damage._id}>
-                                <td>{damage._id}</td>
-                                <td>{damage.title}</td>
-                                <td>{damage.userId}</td>
-                                <td>{damage.objectId}</td>
-                                <td>{damage.adressId}</td>
-                                <td>{damage.floor}</td>
-                                <td>{damage.remarks}</td>
-                                <td>{damage.damageStatus}</td>
-                                <td>
-                                    <button onClick={() => navigate(`/damages/${damage._id}`)}>Show Damage</button>
-                                </td>
-                            </tr>
-                        ))}
-                        </tbody>
-                    </table>
-                ) : (<p>There are no damages to show ...</p>)}
-                <h3>Channel Table:</h3>
-                {channels.length > 0 ? (
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Id</th>
-                                <th>Channelname</th>
-                                <th>Channelrights</th>
-                                <th>Created By</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        {channels.map((channel) => (
-                            <tr key={channel._id}>
-                                <td>{channel._id}</td>
-                                <td>{channel.channelname}</td>
-                                <td>{channel.channelrights}</td>
-                                <td>{channel.createdBy}</td>
-                                <td>
-                                    <Link to={`/channels/${channel._id}`}>Show Channel</Link>
-                                </td>
-                            </tr>
-                        ))}
-                        </tbody>
-                    </table>
-                ) : (<p>There are no channels to show ...</p>)}
-                </>
-            )}
-        </>
+      <>
+        <h2>Admin Dashboard</h2>
+        <h3>Objects:</h3>
+        {data['objects'].length > 0 ? (
+        <table>
+            <thead>
+                <tr>
+                    <th>Objectname</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {data['objects'].map((objectsObject) => (
+                    <tr key={objectsObject._id}>
+                        <td>{objectsObject.objectname}</td>
+                        <td>
+                            <button
+                                onClick={() => navigate(`/objects/${objectsObject._id}`)}
+                            >Show Object</button>
+                            <button
+                                onClick={() => navigate(`/objects/${objectsObject._id}/edit`)}
+                            >Edit Object</button>
+                        </td>
+                    </tr>
+                ))}
+            </tbody>
+        </table>
+        ) : (
+            <p>There are no objects to show ...</p>
         )}
-        </>
+        <h3>Tenants:</h3>
+        {data['tenants'].length > 0 ? (
+            <table>
+                <thead>
+                    <tr>
+                        <th>Companyname</th>
+                        <th>Object</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {data['tenants'].map((tenant) => (
+                    <tr key={tenant.id}>
+                        <td>{tenant.companyname}</td>
+                        <td>
+                            <Link
+                                to={`/objects/${tenant.object.id}`}
+                                style={{
+                                    marginRight: '10px',
+                                    backgroundColor: '#333',
+                                    color: '#ffffff',
+                                    border: 'none',
+                                    padding: '5px 10px',
+                                    cursor: 'pointer',
+                                    textDecoration: 'none'
+                                }}
+                            >{tenant.object.objectname}</Link>
+                        </td>
+                        <td>
+                            <button
+                                onClick={() => navigate(`/tenants/${tenant._id}`)}
+                            >Show Tenant</button>
+                            <button
+                                onClick={() => navigate(`/tenants/${tenant._id}/edit`)}
+                            >Edit Tenant</button>
+                        </td>
+                    </tr>
+                ))}
+                </tbody>
+            </table>
+        ) : (
+            <p>There are no tenants to show ...</p>
+        )}
+        <h3>Users:</h3>
+        {data['users'].length > 0 ? (
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Phonenumber</th>
+                        <th>Role</th>
+                        <th>tfaSetting</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {data['users'].map((user) => (
+                    user.id !== currentUserId ?
+                    <tr key={user.id}>
+                        <td>{user.name}</td>
+                        <td>{user.email}</td>
+                        <td>{user.phonenumber}</td>
+                        <td>{user.role}</td>
+                        <td>{user.tfaSetting}</td>
+                        <td>
+                            <button
+                                onClick={() => navigate(`/users/${user.id}/edit`)}
+                            >Edit User</button>
+                        </td>
+                    </tr> : null
+                ))}
+                </tbody>
+            </table>
+        ) : (
+            <p>There are no users to show ...</p>
+        )}
+      </>
     );
+  };
+
+  const renderUserDashboard = () => {
+    return (
+    <>
+    <h2>User Dashboard</h2>
+    <h3>Object:</h3>
+    {data['object'] ? (
+        <table>
+            <thead>
+                <tr>
+                    <th>Objectname</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr key={data['object']._id}>
+                    <td>{data['object'].objectname}</td>
+                    <td>
+                        <button
+                            onClick={() => navigate(`/objects/${data['object']._id}`)}
+                        >Show Object</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    ) : (
+        <p>There is no object to show ...</p>
+    )}
+    <h3>Tenant:</h3>
+    {data['tenant'] ? (
+        <table>
+            <thead>
+                <tr>
+                    <th>Companyname</th>
+                    <th>Object</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr key={data['tenant'].id}>
+                    <td>{data['tenant'].companyname}</td>
+                    <td><Link to={`/objects/${data['tenant'].object.id}`}>{data['tenant'].object.objectname}</Link></td>
+                    <td>
+                        <button
+                            onClick={() => navigate(`/tenants/${data['tenant'].id}`)}
+                        >Show Tenant</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    ) : (
+        <p>There is no tenant to show ...</p>
+    )}
+    </>
+    );
+  };
+
+  return (
+    <>
+      {isLoggedIn && (
+        <>
+          {isAdmin ? renderAdminDashboard() : renderUserDashboard()}
+          <h3>Damages:</h3>
+                {data['damages'].length > 0 ? (
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>User</th>
+                                <th>Object</th>
+                                <th>Adress</th>
+                                <th>Floor/Elevator</th>
+                                <th>Remarks</th>
+                                <th>Damage Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                    <tbody>
+                        {data['damages'].map((damage) => (
+                            <tr key={damage.id}>
+                                <td>{damage.title}</td>
+                                <td>{damage.user.name}</td>
+                                <td>{damage.object.objectname}</td>
+                                <td>{damage.adress.adress}</td>
+                                <td>{damage.floor}</td>
+                                <td>{damage.remarks}</td>
+                                <td>{damage.damageStatus}</td>
+                                <td>
+                                    <button
+                                        onClick={() => navigate(`/damages/${damage.id}`)}
+                                    >Show Damage</button>
+                                    {isAdmin && (<button
+                                        onClick={() => navigate(`/damages/${damage.id}/edit`)}
+                                    >Edit Damage</button>)}
+                                    {isAdmin && (<button
+                                        onClick={() => handleDeleteDamage(damage.id)}
+                                    >Delete Damage</button>)}
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+                ) : (<p>There are no damages to show ...</p>)}
+                <h3>Channels:</h3>
+                {data['channels'].length > 0 ? (
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Channelname</th>
+                                <th>Channelrights</th>
+                                <th>Created By</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {data['channels'].map((channel) => (
+                            <tr key={channel.id}>
+                                <td>{channel.channelname}</td>
+                                <td>{channel.channelrights}</td>
+                                <td>{channel.createdBy.name}</td>
+                                <td>
+                                    <button
+                                        onClick={() => navigate(`/channels/${channel.id}`)}
+                                    >Show Channel</button>
+                                    <button
+                                        onClick={() => navigate(`/channels/${channel.id}/edit`)}
+                                    >Edit Channel</button>
+                                </td>
+                            </tr>
+                        ))}
+                        </tbody>
+                    </table>
+                ) : (<p>There are no channels to show ...</p>)}
+
+                <h3>Products:</h3>
+                {data['products'].length > 0 ? (
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Description</th>
+                                <th>User</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {data['products'].map((product) => (
+                            <tr key={product.id}>
+                                <td>{product.title}</td>
+                                <td>{product.description}</td>
+                                <td>{product.user.name}</td>
+                                <td>
+                                    {(product.user.id !== currentUserId) && (<button
+                                        onClick={ () => handleInterestedInProduct(product.id, product.title, product.user.id, currentUserId) }
+                                    >
+                                        Interested
+                                    </button>)}
+                                    {(product.user.id === currentUserId) && (<button
+                                        onClick={ () => navigate(`/products/${product.id}/edit`) }
+                                    >
+                                        Edit Product
+                                    </button>)}
+                                </td>
+                            </tr>
+                        ))}
+                        </tbody>
+                    </table>
+                ) : (<p>There are no channels to show ...</p>)}
+        </>
+      )}
+    </>
+  );
 };
+

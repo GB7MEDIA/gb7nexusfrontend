@@ -36,4 +36,10 @@ export { EditChannelScreen } from "./ChannelSystem/EditChannelScreen";
 export { ChannelsScreen } from "./ChannelSystem/ChannelsScreen";
 export { ChannelDetailScreen } from "./ChannelSystem/ChannelDetailScreen";
 
+export { CreateProductScreen } from "./ProductSystem/createProductScreen";
+export { EditProductScreen } from "./ProductSystem/editProductsScreen";
+export { ProductsScreen } from "./ProductSystem/productsScreen";
+
 export { DashboardScreen } from "./DashboardScreen";
+
+export { TestScreen } from "./TestScreen";

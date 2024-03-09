@@ -1,0 +1,39 @@
+header {
+    width: 100%;
+    min-height: 10vh;
+    background-color: #333;
+    color: white;
+    padding: 10px 20px;
+    box-sizing: border-box;
+    top: 0;
+    left: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+header a {
+    cursor: pointer;
+    color: white;
+    text-decoration: none;
+    display: block;
+    width: max-content;
+}
+
+header .dropdown {
+    display: none;
+    position: absolute;
+    background-color: #333;
+    color: white;
+    padding: 10px;
+    top: 100%;
+    left: 0;
+    min-width: 160px;
+    box-sizing: border-box;
+    z-index: 1000;
+}
+
+header .visible {
+    display: block;
+}

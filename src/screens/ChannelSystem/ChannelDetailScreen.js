@@ -13,6 +13,9 @@ import {
 
 import { getUserByIdAPI } from "../../axios/user";
 
+import "../../css/general.css";
+import "../../css/form.css";
+
 export const ChannelDetailScreen = ({ isLoggedIn, currentUserId }) => {
     const navigate = useNavigate();
     useEffect(() => {
@@ -38,9 +41,7 @@ export const ChannelDetailScreen = ({ isLoggedIn, currentUserId }) => {
         (async () => {
             if (channelId) {
                 const channelData = await getChannelByIdAPI(channelId);
-                const channelInfo = channelData.data.data.channel;
-                const createdByData = await getUserByIdAPI(channelInfo.createdBy);
-                setChannel({ ...channelInfo, createdBy: createdByData.data.response.data.data.user.name  });
+                setChannel(channelData.data.data.channel);
                 const channelUsersData = await getChannelUsersByChannelIdAPI(channelId);
                 setChannelUsers(channelUsersData.data.data.users);
                 const channelMessagesData = await getChannelMessagesByChannelIdAPI(channelId);
@@ -75,8 +76,6 @@ export const ChannelDetailScreen = ({ isLoggedIn, currentUserId }) => {
             setError('The message can not be left empty!');
             return;
         }
-
-        console.log(channelId, title, channelMessage);
 
         const response = await createChannelMessageByChannelIdAPI(channelId, title, channelMessage);
         console.log(response);
@@ -123,18 +122,59 @@ export const ChannelDetailScreen = ({ isLoggedIn, currentUserId }) => {
         {isLoggedIn && (
         <>
             <h1>{channel.channelname}</h1>
-            <p>Channel created by {channel.createdBy}</p>
-            <Link to={`/channels/${channelId}/edit`}>Edit Channel</Link>
-            {isChannelAdmin && (<button onClick={() => handleDeleteChannel(channelId)}>Delete</button>)}
+            <p>Channel created by {channel.createdBy.name}</p>
+            {isChannelAdmin && (<Link
+                to={`/channels/${channelId}/edit`}
+                style={{
+                    marginRight: '10px',
+                    backgroundColor: '#333',
+                    color: '#ffffff',
+                    border: 'none',
+                    padding: '5px 10px',
+                    cursor: 'pointer',
+                    textDecoration: 'none'
+                }}
+                >Edit Channel</Link>)}
+            {isChannelAdmin && (<button
+                onClick={() => handleDeleteChannel(channelId)}
+                style={{
+                    marginRight: '10px',
+                    backgroundColor: '#333',
+                    color: '#ffffff',
+                    border: 'none',
+                    padding: '5px 10px',
+                    cursor: 'pointer',
+                }}
+                >Delete</button>)}
             <ul>
                 {channelMessages.length > 0 ? (
                     channelMessages.map(message => (
-                        <li key={message._id}>
+                        <li key={message.id}>
                             <h2>{message.title}</h2>
-                            <strong>{message.userId}</strong>
+                            <strong>{message.user.name}</strong>
                             <p>{message.text}</p>
-                            { currentUserId === message.userId && (<button onClick={() => handleEditMessageClick(message._id, message.title, message.text)}>Edit</button>) }
-                            { currentUserId === message.userId && (<button onClick={() => handleDeleteMessage(message._id)}>Delete</button>) }
+                            { currentUserId === message.user.id && (<button
+                                onClick={() => handleEditMessageClick(message.id, message.title, message.text)}
+                                style={{
+                                    marginRight: '10px',
+                                    backgroundColor: '#333',
+                                    color: '#ffffff',
+                                    border: 'none',
+                                    padding: '5px 10px',
+                                    cursor: 'pointer'
+                                }}
+                                >Edit</button>) }
+                            { currentUserId === message.user.id && (<button
+                                onClick={() => handleDeleteMessage(message.id)}
+                                style={{
+                                    marginRight: '10px',
+                                    backgroundColor: '#333',
+                                    color: '#ffffff',
+                                    border: 'none',
+                                    padding: '5px 10px',
+                                    cursor: 'pointer',
+                                }}
+                                >Delete</button>) }
                         </li>
                     ))
                 ) : (
@@ -143,10 +183,14 @@ export const ChannelDetailScreen = ({ isLoggedIn, currentUserId }) => {
             </ul>
 
             {(channel.channelrights === "everyone" || (channel.channelrights === "admins" && isChannelAdmin)) && (
-                <form onSubmit={editState ? handleEditMessage : handleSendMessage}>
+                <form
+                    onSubmit={editState ? handleEditMessage : handleSendMessage}
+                >
                     <input type="text" placeholder="Title ..." value={title} onChange={(e) => setTitle(e.target.value)} />
                     <input type="text" placeholder="Type your message..." value={channelMessage} onChange={(e) => setChannelMessage(e.target.value)} />
-                    <button type="submit">{editState ? 'Save' : 'Send'}</button>
+                    <button
+                    type="submit"
+                    >{editState ? 'Save' : 'Send'}</button>
                     {error && (<p>{error}</p>)}
                 </form>
             )}

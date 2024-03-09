@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, Link, Routes, Route } from 'react-router-dom';
+import { useNavigate, Routes, Route } from 'react-router-dom';
 
 import { 
   LoginScreen, RegisterScreen, ForgotPasswordScreen, NewPasswordScreen, ActivateAccountScreen, TwoFactorAuthenticationScreen,
@@ -9,8 +9,12 @@ import {
   CreateDamageScreen, EditDamageScreen, DamagesScreen, DamageDetailScreen,
   CreateChatScreen, EditChatScreen, ChatsScreen, ChatDetailScreen,
   CreateChannelScreen, EditChannelScreen, ChannelsScreen, ChannelDetailScreen,
-  DashboardScreen
+  CreateProductScreen, EditProductScreen, ProductsScreen,
+  DashboardScreen,
+  TestScreen
 } from "./screens/index";
+
+import { Header } from "./components/header";
 
 import { isLoggedInAPI } from "./axios/auth";
 import { getUserByIdAPI } from "./axios/user";
@@ -26,14 +30,14 @@ export const App = () => {
 
   useEffect(() => {
     (async () => {
-      try {
+      if (!isLoggedIn) {
         const response = await isLoggedInAPI();
         if (response.success === true) {
           setIsLoggedIn(response.data.response.data.loggedIn);
           setIsAdmin(response.data.response.data.admin);
           setCurrentUserId(response.data.response.data.loggedInUserId);
         }
-      } catch (error) {}
+      }
     })();
   }, []);
 
@@ -59,32 +63,15 @@ export const App = () => {
   return (
     <>
       {isLoggedIn && (
-        <header>
-          <Link to="/">Dashboard</Link><br />
-          {isAdmin && (<><Link to="/users">Users</Link><br /></>)}
-          {isAdmin && (<><Link to="/users/create">Create User</Link><br /></>)}
-          {isAdmin && (<><Link to="/objects">Objects</Link><br /></>)}
-          {isAdmin && (<><Link to="/objects/create">Create Object</Link><br /></>)}
-          {isAdmin && (<><Link to="/tenants">Tenants</Link><br /></>)}
-          {isAdmin && (<><Link to="/tenants/create">Create Tenant</Link><br /></>)}
-          <Link to="/damages">Damages</Link><br />
-          <Link to="/damages/create">Create Damage</Link><br />
-          <Link to="/chats">Chats</Link><br />
-          <Link to="/chats/create">Create Chat</Link><br />
-          <Link to="/channels">Channels</Link><br />
-          {isAdmin && (<><Link to="/channels/create">Create Channel</Link><br /></>)}
-          <Link to={`/${currentUserId}`}>{currentUser.name}</Link><br />
-          <Link to={`/settings`}>Settings</Link><br />
-          <Link onClick={ e => handleLogout(e) }>Logout</Link>
-        </header>
+        <Header isAdmin={isAdmin} currentUserId={currentUserId} currentUser={currentUser} handleLogout={handleLogout} />
       )}
       <Routes>
-      <Route path="/login" element={<LoginScreen isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />} />
+      <Route path="/login" element={<LoginScreen isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} setIsAdmin={setIsAdmin} />} />
       <Route path="/register" element={<RegisterScreen isLoggedIn={isLoggedIn} />} />
       <Route path="/password/forgot" element={<ForgotPasswordScreen isLoggedIn={isLoggedIn} />} />
       <Route path="/password/new" element={<NewPasswordScreen isLoggedIn={isLoggedIn} />} />
       <Route path="/activate" element={<ActivateAccountScreen isLoggedIn={isLoggedIn} />} />
-      <Route path="/tfa" element={<TwoFactorAuthenticationScreen isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />} />
+      <Route path="/tfa" element={<TwoFactorAuthenticationScreen isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} setIsAdmin={setIsAdmin} />} />
 
       <Route path="/users/create" element={<CreateUserScreen isLoggedIn={isLoggedIn} isAdmin={isAdmin} />} />
       <Route path="/users/:userId/edit" element={<EditUserScreen isLoggedIn={isLoggedIn} isAdmin={isAdmin} currentUserId={currentUserId} />} />
@@ -100,12 +87,12 @@ export const App = () => {
       <Route path="/tenants/create" element={<CreateTenantScreen isLoggedIn={isLoggedIn} isAdmin={isAdmin} />} />
       <Route path="/tenants/:tenantId/edit" element={<EditTenantScreen isLoggedIn={isLoggedIn} isAdmin={isAdmin} />} />
       <Route path="/tenants" element={<TenantsScreen isLoggedIn={isLoggedIn} isAdmin={isAdmin} />} />
-      <Route path="/tenants/:tenantId" element={<TenantDetailScreen isLoggedIn={isLoggedIn} isAdmin={isAdmin} />} />
+      <Route path="/tenants/:tenantId" element={<TenantDetailScreen isLoggedIn={isLoggedIn} isAdmin={isAdmin} currentUserId={currentUserId} />} />
 
       <Route path="/damages/create" element={<CreateDamageScreen isLoggedIn={isLoggedIn} currentUserId={currentUserId} />} />
       <Route path="/damages/:damageId/edit" element={<EditDamageScreen isLoggedIn={isLoggedIn} isAdmin={isAdmin} />} />
       <Route path="/damages" element={<DamagesScreen isLoggedIn={isLoggedIn} isAdmin={isAdmin} currentUserId={currentUserId} />} />
-      <Route path="/damages/:damageId" element={<DamageDetailScreen isLoggedIn={isLoggedIn} />} />
+      <Route path="/damages/:damageId" element={<DamageDetailScreen isLoggedIn={isLoggedIn} isAdmin={isAdmin} />} />
 
       <Route path="/chats/create" element={<CreateChatScreen isLoggedIn={isLoggedIn} />} />
       <Route path="/chats/:chatId/edit" element={<EditChatScreen isLoggedIn={isLoggedIn} />} />
@@ -116,8 +103,14 @@ export const App = () => {
       <Route path="/channels/:channelId/edit" element={<EditChannelScreen isLoggedIn={isLoggedIn} currentUserId={currentUserId} />} />
       <Route path="/channels" element={<ChannelsScreen isLoggedIn={isLoggedIn} isAdmin={isAdmin} currentUserId={currentUserId} />} />
       <Route path="/channels/:channelId" element={<ChannelDetailScreen isLoggedIn={isLoggedIn} currentUserId={currentUserId} />} />
+
+      <Route path="/products/create" element={<CreateProductScreen isLoggedIn={isLoggedIn} />} />
+      <Route path="/products/:productId/edit" element={<EditProductScreen isLoggedIn={isLoggedIn} />} />
+      <Route path="/products" element={<ProductsScreen isLoggedIn={isLoggedIn} currentUserId={currentUserId} />} />
       
       <Route path="/" element={<DashboardScreen isLoggedIn={isLoggedIn} isAdmin={isAdmin} currentUserId={currentUserId} />} />
+
+      <Route path="/upload" element={<TestScreen isLoggedIn={isLoggedIn} />} />
     </Routes>
     </>
   );

@@ -4,6 +4,9 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { getAllUsersAPI } from "../../axios/user";
 import { editChatByIdAPI, getChatByIdAPI, getChatUsersByChatIdAPI } from "../../axios/chat";
 
+import "../../css/general.css";
+import "../../css/form.css";
+
 export const EditChatScreen = ({ isLoggedIn }) => {
     const navigate = useNavigate();
     const { chatId } = useParams();
@@ -94,33 +97,53 @@ export const EditChatScreen = ({ isLoggedIn }) => {
         }
 
         const response = await editChatByIdAPI(chatId, chatname, users, chatrights);
-        console.log(response);
+        if (response) {
+            navigate(`/chats/${chatId}`);
+        }
     };
 
     return (
         <>
             <h1>Edit Chat</h1>
             <form onSubmit={handleEditChat}>
-                <input type="text" placeholder="Chatname" value={chatname} onChange={(e) => setChatname(e.target.value)} /><br />
+                <input
+                    type="text"
+                    placeholder="Chatname"
+                    value={chatname}
+                    onChange={(e) => setChatname(e.target.value)}
+                /><br />
                 <select value={chatrights} onChange={(e) => setChatrights(e.target.value)}>
                     <option value="admins">Admins</option>
                     <option value="everyone">Everyone</option>
                 </select><br />
-                <input type="text" placeholder="Chatusers (comma-separated usernames)" value={chatusers} onChange={(e) => setChatusers(e.target.value)} /><br />
+                <input
+                    type="text"
+                    placeholder="Chatusers (comma-separated usernames)"
+                    value={chatusers}
+                    onChange={(e) => setChatusers(e.target.value)}
+                /><br />
                 {chatusers.split(',').filter(user => user.trim()).map((user, index) => (
-                    <div key={index}>
-                        <label>
+                    <div key={index} className={`custom_checkbox_div`}>
+                        <label className={`custom_checkbox_label`}>
                             {user.trim()}:
-                            <input 
-                                type="checkbox" 
-                                checked={!!isChatAdmin[user.trim()]} 
+                            <input
+                                type="checkbox"
+                                checked={!!isChatAdmin[user.trim()]}
                                 onChange={() => handleUserChange(user.trim())}
                             />
-                            Admin
+                            <span className={`custom_checkbox_span`} style={{backgroundColor: !!isChatAdmin[user.trim()] ? '#333' : '#fff'}}>
+                                { !!isChatAdmin[user.trim()] && (
+                                    <span className={`custom_checkbox_inner_span`}></span>
+                                )}
+                            </span>
+                            <span className={`custom_checkbox_extra_span`}>Admin</span>
                         </label><br />
                     </div>
                 ))}
-                <input type="submit" value="Save" />
+                <input
+                    type="submit"
+                    value="Save"
+                />
                 {error && (<p>{error}</p>)}
             </form>
         </>

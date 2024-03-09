@@ -3,6 +3,9 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import { getObjectByIdAPI, editObjectByIdAPI } from "../../axios/object";
 
+import "../../css/general.css";
+import "../../css/form.css";
+
 export const EditObjectScreen = ({ isLoggedIn, isAdmin }) => {
     const navigate = useNavigate();
     useEffect(() => {
@@ -40,7 +43,9 @@ export const EditObjectScreen = ({ isLoggedIn, isAdmin }) => {
         }
 
         const response = await editObjectByIdAPI(objectId, objectname);
-        console.log(response);
+        if (response) {
+            navigate(`/objects/${objectId}`);
+        }
     };
 
     return (
@@ -53,7 +58,10 @@ export const EditObjectScreen = ({ isLoggedIn, isAdmin }) => {
                     value={objectname}
                     onChange={(e) => setObjectname(e.target.value)}
                 /><br />
-                <input type="submit" value="Save" />
+                <input
+                    type="submit"
+                    value="Save"
+                />
                 {error && (<p>{error}</p>)}
             </form>
         </>

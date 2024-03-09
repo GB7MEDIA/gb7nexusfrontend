@@ -5,7 +5,10 @@ import { validEmailRegex, validPasswordRegex } from "../../helpers/regex";
 
 import { loginAPI } from "../../axios/auth";
 
-export const LoginScreen = ({ isLoggedIn, setIsLoggedIn }) => {
+import "../../css/general.css";
+import "../../css/form.css";
+
+export const LoginScreen = ({ isLoggedIn, setIsLoggedIn, setIsAdmin }) => {
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -45,6 +48,7 @@ export const LoginScreen = ({ isLoggedIn, setIsLoggedIn }) => {
         if (response.success === true) {
             localStorage.setItem('token', response.data.response.data.data.token);
             setIsLoggedIn(true);
+            setIsAdmin(response.data.response.data.data.user.role === "admin" ? true : false);
             navigate('/');
         } else {
             setError(response.error.error);
@@ -67,11 +71,18 @@ export const LoginScreen = ({ isLoggedIn, setIsLoggedIn }) => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                 />
-                <input type="submit" value="Login" />
+                <input
+                    type="submit"
+                    value="Login"
+                />
                 {error && (<p>{error}</p>)}
-                <Link to="/password/forgot">Forgot Password?</Link>
+                <Link
+                    to="/password/forgot"
+                >Forgot Password?</Link>
+                <Link
+                    to="/register"
+                >Do not have an account? Register instead!</Link>
             </form>
-            <Link to="/register">Do not have an account? Register instead!</Link>
         </>
     );
 };

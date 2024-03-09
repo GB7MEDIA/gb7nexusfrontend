@@ -2,116 +2,86 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 
 import { validEmailRegex, validPhonenumberRegex } from "../../helpers/regex";
-
 import { getUserByIdAPI, editUserByIdAPI } from "../../axios/user";
 import { getAllTenantsAPI, getTenantByUserIdAPI } from "../../axios/tenant";
 
+import "../../css/general.css";
+import "../../css/form.css";
+
 export const EditUserScreen = ({ isLoggedIn, isAdmin, currentUserId }) => {
-    const navigate = useNavigate();
     const { userId } = useParams();
-
-    useEffect(() => {
-        if (!isLoggedIn) {
-            navigate("/login");
-        }
-    }, [isLoggedIn, navigate]);
-
-    useEffect(() => {
-        if (!isAdmin) {
-            navigate("/");
-        }
-    }, [isAdmin, navigate]);
-
-    useEffect(() => {
-        if (userId === currentUserId) {
-            navigate('/settings');
-        }
-    }, [userId, currentUserId, navigate]);
-
-    const [tenants, setTenants] = useState('');
-
-    useEffect(() => {
-        (async () => {
-            const tenantsData = await getAllTenantsAPI();
-            setTenants(tenantsData.data.data.tenants);
-        })()
-    }, []);
-
-    const [name, setName] = useState('');
-    const [email, setEmail] = useState('');
-    const [phonenumber, setPhonenumber] = useState('');
-    const [role, setRole] = useState('user');
-    const [tenantId, setTenantId] = useState('');
-    const [twoFactorAuthType, setTwoFactorAuthType] = useState('false');
-
+    const navigate = useNavigate();
+    const [tenants, setTenants] = useState([]);
+    const [userDetails, setUserDetails] = useState({
+        name: '',
+        email: '',
+        phonenumber: '',
+        role: 'user',
+        tenantId: '',
+        twoFactorAuthType: 'false',
+    });
     const [error, setError] = useState('');
 
     useEffect(() => {
-        (async () => {
-            if (userId) {
-                const userData = await getUserByIdAPI(userId);
-                setName(userData.data.response.data.data.user.name);
-                setEmail(userData.data.response.data.data.user.email);
-                setPhonenumber(userData.data.response.data.data.user.phonenumber);
-                setRole(userData.data.response.data.data.user.role);
+        if (!isLoggedIn) navigate("/login");
+        else if (!isAdmin || userId === currentUserId) navigate(userId === currentUserId ? '/settings' : '/');
+    }, [isLoggedIn, isAdmin, userId, currentUserId, navigate]);
+
+    useEffect(() => {
+        const fetchInitialData = async () => {
+            try {
+                const tenantsResponse = await getAllTenantsAPI();
+                setTenants(tenantsResponse.data.data.tenants);
+
                 const tenantData = await getTenantByUserIdAPI(userId);
-                setTenantId(tenantData.data.data.tenantId.response[0].tenantId);
-                setTwoFactorAuthType(userData.data.response.data.data.user.tfaSetting);
+                const tenantId = tenantData.data.data.tenantId.tenantId;
+
+                const userResponse = await getUserByIdAPI(userId);
+                const user = userResponse.data.response.data.data.user;
+                setUserDetails({
+                    name: user.name,
+                    email: user.email,
+                    phonenumber: user.phonenumber,
+                    role: user.role,
+                    tenantId: tenantId,
+                    twoFactorAuthType: user.tfaSetting,
+                });
+            } catch (error) {
+                console.error("Error fetching data", error);
             }
-        })()
+        };
+
+        fetchInitialData();
     }, [userId]);
+
+    const handleChange = (e) => {
+        setUserDetails({ ...userDetails, [e.target.name]: e.target.value });
+    };
+
+    const validateForm = () => {
+        const { name, email, phonenumber, role, twoFactorAuthType } = userDetails;
+        if (!name || !email || !phonenumber || !role || !twoFactorAuthType) return 'All fields must be filled!';
+        if (!validEmailRegex.test(email)) return 'Invalid email format!';
+        if (!validPhonenumberRegex.test(phonenumber)) return 'Invalid phonenumber format!';
+        if (!['user', 'admin'].includes(role)) return 'Invalid role!';
+        if (!['false', 'email', 'sms'].includes(twoFactorAuthType)) return 'Invalid two factor authentication type!';
+        return '';
+    };
 
     const handleEditUser = async (e) => {
         e.preventDefault();
-
-        if (!name) {
-            setError('The name can not be left empty!');
+        const validationError = validateForm();
+        if (validationError) {
+            setError(validationError);
             return;
         }
 
-        if (!email) {
-            setError('The email can not be left empty!');
-            return;
-        }
-
-        if(!validEmailRegex.test(email)) {
-            setError('The email has to be valid!');
-            return;
-        }
-
-        if (!phonenumber) {
-            setError('The phonenumber can not be left empty!')
-            return;
-        }
-
-        if (!validPhonenumberRegex.test(phonenumber)) {
-            setError('The phonenumber has to be valid!');
-            return;
-        }
-
-        if (!role) {
-            setError('The role can not be left empty!');
-            return;
-        }
-
-        if (role !== "user" && role !== "admin") {
-            setError('The role is invalid!');
-            return;
-        }
-
-        if (!twoFactorAuthType) {
-            setError('The two factor auth type can not be left empty!');
-            return;
-        }
-
-        if (twoFactorAuthType !== "false" && twoFactorAuthType !== "email" && twoFactorAuthType !== "sms") {
-            setError('The two factor auth type can not be invalid!');
-            return;
-        }
-
-        const response = await editUserByIdAPI(userId, name, email, phonenumber, twoFactorAuthType, role);
-        if (response) {
+        try {
+            await editUserByIdAPI(userId, userDetails);
             navigate('/users');
+        } catch (error) {
+            setError('Failed to update user.');
+            console.error("Update user error:", error);
         }
     };
 
@@ -119,31 +89,28 @@ export const EditUserScreen = ({ isLoggedIn, isAdmin, currentUserId }) => {
         <>
             <h1>Edit User</h1>
             <form onSubmit={handleEditUser}>
-                <input type="text" placeholder="Name ..." value={name} onChange={(e) => setName(e.target.value)} /><br />
-                <input type="text" placeholder="Email ..." value={email} onChange={(e) => setEmail(e.target.value)} /><br />
-                <input type="text" placeholder="Phonenumber ..." value={phonenumber} onChange={(e) => setPhonenumber(e.target.value)} /><br />
-                <select value={role} onChange={(e) => setRole(e.target.value)}>
+                {Object.entries(userDetails).map(([key, value]) => key !== 'tenantId' && key !== 'twoFactorAuthType' && key !== 'role' && (
+                    <input key={key} name={key} type="text" placeholder={`${key[0].toUpperCase() + key.slice(1)} ...`} value={value} onChange={handleChange} />
+                ))}
+                <select name="role" value={userDetails.role} onChange={handleChange}>
                     <option value="user">User</option>
                     <option value="admin">Admin</option>
-                </select><br />
-                <select value={tenantId} onChange={(e) => setTenantId(e.target.value)}>
-                    <option value="">No Mieter</option>
-                    {tenants.length > 0 ? (
-                        tenants.map(tenant => (
-                            <option key={tenant._id} value={tenant._id}>{tenant.companyname}</option>
-                        ))
-                        ) : (
-                            <option disabled>No tenants exist</option>
-                        )}
-                </select><br />
-                <select value={twoFactorAuthType} onChange={(e) => setTwoFactorAuthType(e.target.value)}>
+                </select>
+                <select name="tenantId" value={userDetails.tenantId} onChange={handleChange}>
+                    <option value="">No Tenant</option>
+                    {tenants.map(tenant => (
+                        <option key={tenant.id} value={tenant.id}>{tenant.companyname}</option>
+                    ))}
+                </select>
+                <select name="twoFactorAuthType" value={userDetails.twoFactorAuthType} onChange={handleChange}>
                     <option value="false">No Two Factor Authentication</option>
                     <option value="email">Email Two Factor Authentication</option>
                     <option value="sms">SMS Two Factor Authentication</option>
-                </select><br />
+                </select>
                 <input type="submit" value="Save" />
-                {error && (<p>{error}</p>)}
+                {error && <p>{error}</p>}
             </form>
         </>
     );
 };
+

@@ -1,1 +1,1 @@
-export const baseBackendUrl = "https://customer-experience-app-1b6f366dd79d.herokuapp.com/api";
+export const baseBackendUrl = "https://customer-experience-app-1b6f366dd79d.herokuapp.com/";

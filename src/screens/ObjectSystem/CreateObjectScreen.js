@@ -3,7 +3,10 @@ import { useNavigate } from 'react-router-dom';
 
 import { createObjectAPI } from "../../axios/object";
 
-export const CreateObjectScreen = ({ isLoggedIn, isAdmin, currentUserId, currentUser }) => {
+import "../../css/general.css";
+import "../../css/form.css";
+
+export const CreateObjectScreen = ({ isLoggedIn, isAdmin }) => {
     const navigate = useNavigate();
     useEffect(() => {
         if (!isLoggedIn) {
@@ -31,16 +34,24 @@ export const CreateObjectScreen = ({ isLoggedIn, isAdmin, currentUserId, current
 
         const response = await createObjectAPI(objectname);
         if (response) {
-            navigate(`/objects/${response.data.data.createdObject.response._id}`);
+            navigate(`/objects/${response.data.data.createdObject._id}`);
         }
     };
 
     return (
         <>
-            <h1>Create Objekt</h1>
+            <h1>Create Object</h1>
             <form onSubmit={handleCreateObject}>
-                <input type="text" placeholder="Objectname ..." value={objectname} onChange={(e) => setObjectname(e.target.value)} /><br />
-                <input type="submit" value="Create" />
+                <input
+                    type="text"
+                    placeholder="Objectname ..."
+                    value={objectname}
+                    onChange={(e) => setObjectname(e.target.value)}
+                /><br />
+                <input
+                    type="submit"
+                    value="Create"
+                />
                 {error && (<p>{error}</p>)}
             </form>
         </>

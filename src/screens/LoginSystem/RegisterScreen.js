@@ -5,6 +5,9 @@ import { validEmailRegex, validPhonenumberRegex, validPasswordRegex } from "../.
 
 import { registerAPI } from "../../axios/auth";
 
+import "../../css/general.css";
+import "../../css/form.css";
+
 export const RegisterScreen = ({ isLoggedIn }) => {
     const navigate = useNavigate();
 
@@ -114,10 +117,15 @@ export const RegisterScreen = ({ isLoggedIn }) => {
                     value={repeatPassword} 
                     onChange={(e) => setRepeatPassword(e.target.value)}
                 />
-                <input type="submit" value="Register" />
+                <input
+                    type="submit"
+                    value="Register"
+                />
                 {error && (<p>{error}</p>)}
+                <Link
+                    to="/login"
+                >Already have an account? Login instead!</Link>
             </form>
-            <Link to="/login">Already have an account? Login instead!</Link>
         </>
     );
 };

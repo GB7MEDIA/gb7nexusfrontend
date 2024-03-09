@@ -1,153 +1,102 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-
 import { validEmailRegex, validPhonenumberRegex, validPasswordRegex } from "../../helpers/regex";
-
 import { getAllTenantsAPI } from "../../axios/tenant";
-
 import { createUserAPI } from "../../axios/user";
+
+import "../../css/general.css";
+import "../../css/form.css";
 
 export const CreateUserScreen = ({ isLoggedIn, isAdmin }) => {
     const navigate = useNavigate();
-    useEffect(() => {
-        if (!isLoggedIn) {
-            navigate("/login");
-        }
-    }, [isLoggedIn, navigate]);
-
-    useEffect(() => {
-        if (!isAdmin) {
-            navigate("/");
-        }
-    }, [isAdmin, navigate]);
-
-    const [tenants, setTenants] = useState('');
-
-    useEffect(() => {
-        (async() => {
-            const tenantsData = await getAllTenantsAPI();
-            setTenants(tenantsData.data.data.tenants);
-        })()
-    }, []);
-
-    const [name, setName] = useState('');
-    const [email, setEmail] = useState('');
-    const [phonenumber, setPhonenumber] = useState('');
-    const [role, setRole] = useState('user');
-    const [tenantId, setTenantId] = useState('');
-    const [password, setPassword] = useState('');
-    const [repeatPassword, setRepeatPassword] = useState('');
-
+    const [tenants, setTenants] = useState([]);
+    const [formData, setFormData] = useState({
+        name: '',
+        email: '',
+        phonenumber: '',
+        role: 'user',
+        tenantId: '',
+        password: '',
+        repeatPassword: '',
+    });
     const [error, setError] = useState('');
+
+    useEffect(() => {
+        if (!isLoggedIn) navigate("/login");
+        else if (!isAdmin) navigate("/");
+        else fetchTenants();
+    }, [isLoggedIn, isAdmin, navigate]);
+
+    const fetchTenants = async () => {
+        try {
+            const { data } = await getAllTenantsAPI();
+            setTenants(data.data.tenants);
+        } catch (error) {
+            console.error("Failed to fetch tenants:", error);
+        }
+    };
+
+    const handleChange = (e) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
+
+    const validateForm = () => {
+        const { name, email, phonenumber, password, repeatPassword, role } = formData;
+        if (!name || !email || !phonenumber || !role || !password) return 'Please fill in all fields';
+        if (!validEmailRegex.test(email)) return 'Invalid email format';
+        if (!validPhonenumberRegex.test(phonenumber)) return 'Invalid phonenumber format';
+        if (!validPasswordRegex.test(password)) return 'Password must contain at least one letter, one number, and be at least 8 characters long';
+        if (password !== repeatPassword) return 'Passwords do not match';
+        return '';
+    };
 
     const handleCreateUser = async (e) => {
         e.preventDefault();
-
-        if (!name) {
-            setError('The name can not be left empty!');
+        const validationError = validateForm();
+        if (validationError) {
+            setError(validationError);
             return;
         }
 
-        if (!email) {
-            setError('The email can not be left empty!');
-            return;
+        try {
+            await createUserAPI({
+                name: formData.name,
+                email: formData.email,
+                phonenumber: formData.phonenumber,
+                role: formData.role,
+                tenantId: formData.tenantId,
+                password: formData.password,
+            });
+            navigate('/users');
+        } catch (error) {
+            setError("Failed to create user. Please try again.");
+            console.error("Create user error:", error);
         }
-
-        if(!validEmailRegex.test(email)) {
-            setError('The email has to be valid!');
-            return;
-        }
-
-        if (!phonenumber) {
-            setError('The phonenumber can not be left empty!')
-            return;
-        }
-
-        if (!validPhonenumberRegex.test(phonenumber)) {
-            setError('The phonenumber has to be valid!');
-            return;
-        }
-
-        if (!role) {
-            setError('The role can not be left empty!');
-            return;
-        }
-
-        if (role !== "user" && role !== "admin") {
-            setError('The role is invalid!');
-            return;
-        }
-
-        if (!password) {
-            setError('The password has to be valid!');
-            return;
-        }
-
-        if (!validPasswordRegex.test(password)) {
-            setError('The password has to have at lease one letter and number and at least 8 characters!');
-            return;
-        }
-
-        if (password !== repeatPassword) {
-            setError('The passwords do not match!');
-            return;
-        }
-
-        const response = await createUserAPI(name, email, phonenumber, role, tenantId, password);
-        console.log(response);
     };
 
     return (
         <>
             <h1>Create User</h1>
             <form onSubmit={handleCreateUser}>
-                <input 
-                    type="text" 
-                    placeholder="Name ..." 
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                /><br />
-                <input 
-                    type="text" 
-                    placeholder="Email ..." 
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                /><br />
-                <input 
-                    type="text" 
-                    placeholder="Phonenumber ..." 
-                    value={phonenumber}
-                    onChange={(e) => setPhonenumber(e.target.value)}
-                /><br />
-                <select value={role} onChange={(e) => setRole(e.target.value)}>
+                <input type="text" name="name" placeholder="Name ..." value={formData.name} onChange={handleChange} />
+                <input type="text" name="email" placeholder="Email ..." value={formData.email} onChange={handleChange} />
+                <input type="text" name="phonenumber" placeholder="Phonenumber ..." value={formData.phonenumber} onChange={handleChange} />
+                <select name="role" value={formData.role} onChange={handleChange}>
                     <option value="user">User</option>
                     <option value="admin">Admin</option>
-                </select><br />
-                <select value={tenantId} onChange={(e) => setTenantId(e.target.value)}>
-                    <option value="">No Mieter</option>
-                    {tenants.length > 0 ? (
-                        tenants.map(tenant => (
-                            <option key={tenant._id} value={tenant._id}>{tenant.companyname}</option>
-                        ))
-                        ) : (
-                            <option disabled>No tenants exist</option>
-                        )}
-                </select><br />
-                <input 
-                    type="password" 
-                    placeholder="Password ..." 
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                /><br />
-                <input 
-                    type="password" 
-                    placeholder="Repeat Password ..." 
-                    value={repeatPassword}
-                    onChange={(e) => setRepeatPassword(e.target.value)}
-                /><br />
+                </select>
+                <select name="tenantId" value={formData.tenantId} onChange={handleChange}>
+                    <option value="">Select Tenant</option>
+                    {tenants.map(tenant => (
+                        <option key={tenant._id} value={tenant._id}>{tenant.companyname}</option>
+                    ))}
+                </select>
+                <input type="password" name="password" placeholder="Password ..." value={formData.password} onChange={handleChange} />
+                <input type="password" name="repeatPassword" placeholder="Repeat Password ..." value={formData.repeatPassword} onChange={handleChange} />
                 <input type="submit" value="Create" />
-                {error && (<p>{error}</p>)}
+                {error && <p>{error}</p>}
             </form>
         </>
     );
 };
+

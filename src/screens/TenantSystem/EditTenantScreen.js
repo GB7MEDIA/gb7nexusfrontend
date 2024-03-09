@@ -4,7 +4,10 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { editTenantByIdAPI, getTenantByIdAPI } from "../../axios/tenant";
 import { getAllObjectsAPI } from "../../axios/object";
 
-export const EditTenantScreen = ({ isLoggedIn, isAdmin, currentUserId, currentUser }) => {
+import "../../css/general.css";
+import "../../css/form.css";
+
+export const EditTenantScreen = ({ isLoggedIn, isAdmin }) => {
     const navigate = useNavigate();
     const { tenantId } = useParams();
 
@@ -67,7 +70,7 @@ export const EditTenantScreen = ({ isLoggedIn, isAdmin, currentUserId, currentUs
 
     return (
         <>
-            <h1>Edit Mieter</h1>
+            <h1>Edit Tenant</h1>
             <form onSubmit={handleEditTenant}>
                 <input 
                     type="text" 
@@ -83,7 +86,10 @@ export const EditTenantScreen = ({ isLoggedIn, isAdmin, currentUserId, currentUs
                         ))
                     ) : (<option disabled>No Objects available</option>)}
                 </select><br />
-                <input type="submit" value="Save" />
+                <input
+                    type="submit"
+                    value="Save"
+                />
                 {error && (<p>{error}</p>)}
             </form>
         </>

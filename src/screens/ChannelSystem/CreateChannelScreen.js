@@ -4,6 +4,9 @@ import { useNavigate } from 'react-router-dom';
 import { getAllUsersAPI } from "../../axios/user";
 import { createChannelAPI } from "../../axios/channel";
 
+import "../../css/general.css";
+import "../../css/form.css";
+
 export const CreateChannelScreen = ({ isLoggedIn, isAdmin }) => {
     const navigate = useNavigate();
     useEffect(() => {
@@ -84,26 +87,44 @@ export const CreateChannelScreen = ({ isLoggedIn, isAdmin }) => {
         <>
             <h1>Create Channel</h1>
             <form onSubmit={handleCreateChannel}>
-                <input type="text" placeholder="Channelname" value={channelname} onChange={(e) => setChannelname(e.target.value)} /><br />
+                <input
+                    type="text"
+                    placeholder="Channelname"
+                    value={channelname}
+                    onChange={(e) => setChannelname(e.target.value)}
+                /><br />
                 <select value={channelrights} onChange={(e) => setChannelrights(e.target.value)}>
                     <option value="admins">Admins</option>
                     <option value="everyone">Everyone</option>
                 </select><br />
-                <input type="text" placeholder="Channelusers (comma-separated user names)" value={channelusers} onChange={(e) => setChannelusers(e.target.value)} /><br />
+                <input
+                    type="text"
+                    placeholder="Channelusers (comma-separated user names)"
+                    value={channelusers}
+                    onChange={(e) => setChannelusers(e.target.value)}
+                /><br />
                 {channelusers.split(',').filter(user => user.trim()).map((user, index) => (
-                    <div key={index}>
-                        <label>
+                    <div key={index} className={`custom_checkbox_div`}>
+                        <label className={`custom_checkbox_label`}>
                             {user.trim()}:
-                            <input 
-                                type="checkbox" 
-                                checked={!!isChannelAdmin[user.trim()]} 
+                            <input
+                                type="checkbox"
+                                checked={!!isChannelAdmin[user.trim()]}
                                 onChange={() => handleUserChange(user.trim())}
                             />
-                            Admin
+                            <span className={`custom_checkbox_span`} style={{backgroundColor: !!isChannelAdmin[user.trim()] ? '#333' : '#fff'}}>
+                                { !!isChannelAdmin[user.trim()] && (
+                                    <span className={`custom_checkbox_inner_span`}></span>
+                                )}
+                            </span>
+                            <span className={`custom_checkbox_extra_span`}>Admin</span>
                         </label><br />
                     </div>
                 ))}
-                <input type="submit" value="Create" />
+                <input
+                    type="submit"
+                    value="Create"
+                />
                 {error && (<p>{error}</p>)}
             </form>
         </>

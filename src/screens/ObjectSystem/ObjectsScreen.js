@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 import { getAllObjectsAPI } from "../../axios/object";
+
+import "../../css/general.css";
+import "../../css/table.css";
 
 export const ObjectsScreen = ({ isLoggedIn, isAdmin, currentUserId, currentUser }) => {
     const navigate = useNavigate();
@@ -29,13 +32,33 @@ export const ObjectsScreen = ({ isLoggedIn, isAdmin, currentUserId, currentUser 
     return (
         <>
             <h1>Objects</h1>
-            {objects && (
-                objects.map((object) => (
-                <div key={object._id}>
-                    <Link to={`/objects/${object._id}`}>{object.objectname}</Link>
-                </div>
-                ))
-            )}
+            {objects.length > 0 ? (
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Objectname</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {objects.map((objectsObject) => (
+                        <tr key={objectsObject._id}>
+                            <td>{objectsObject.objectname}</td>
+                            <td>
+                                <button
+                                    onClick={() => navigate(`/objects/${objectsObject._id}`)}
+                                >Show Object</button>
+                                <button
+                                    onClick={() => navigate(`/objects/${objectsObject._id}/edit`)}
+                                >Edit Object</button>
+                            </td>
+                        </tr>
+                        ))}
+                    </tbody>
+                </table>
+                ) : (
+                <p>There are no objects to show ...</p>
+                )}
         </>
     );
 };

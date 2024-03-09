@@ -4,7 +4,9 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { getDamageByIdAPI } from "../../axios/damage";
 import { getObjectByIdAPI, getObjectAdressesByObjectIdAPI } from "../../axios/object";
 
-export const DamageDetailScreen = ({ isLoggedIn}) => {
+import "../../css/general.css";
+
+export const DamageDetailScreen = ({ isLoggedIn, isAdmin }) => {
     const navigate = useNavigate();
     const { damageId } = useParams();
 
@@ -17,6 +19,7 @@ export const DamageDetailScreen = ({ isLoggedIn}) => {
     const [damageDetails, setDamageDetails] = useState({
         damageId: '',
         title: '',
+        files: '',
         object: {
             _id: '',
             objectname: ''
@@ -35,21 +38,20 @@ export const DamageDetailScreen = ({ isLoggedIn}) => {
             if (damageId) {
                 try {
                     const damageData = await getDamageByIdAPI(damageId);
-                    const objectData = await getObjectByIdAPI(damageData.data.data.damage.objectId);
-                    const addressesData = await getObjectAdressesByObjectIdAPI(objectData.data.data.object._id);
-                    const selectedAddress = addressesData.data.data.adresses.filter(adress => adress._id === damageData.data.data.damage.adressId);
+                    console.log(damageData.data.data.damage);
 
                     setDamageDetails(currentFormData => ({
                         ...currentFormData,
                         damageId: damageId,
                         title: damageData.data.data.damage.title,
+                        files: damageData.data.data.damage.files,
                         object: {
-                            _id: objectData.data.data.object._id,
-                            objectname: objectData.data.data.object.objectname
+                            id: damageData.data.data.damage.object.id,
+                            objectname: damageData.data.data.damage.object.objectname
                         },
                         adress: {
-                            _id: selectedAddress[0]._id,
-                            adress: selectedAddress[0].adress
+                            id: damageData.data.data.damage.adress.id,
+                            adress: damageData.data.data.damage.adress.adress
                         },
                         floorOrElevator: damageData.data.data.damage.floor,
                         remarks: damageData.data.data.damage.remarks,
@@ -63,12 +65,20 @@ export const DamageDetailScreen = ({ isLoggedIn}) => {
         fetchDamageDetails();
     }, [damageId]);
 
-    useEffect(() => {
-    }, []);
-
     return (
         <>
             <h1>{damageDetails.title}</h1>
+            {isAdmin &&(<button
+                            onClick={() => navigate(`/damages/${damageId}/edit`)}
+                            style={{
+                                marginRight: '10px',
+                                backgroundColor: '#333',
+                                color: '#ffffff',
+                                border: 'none',
+                                padding: '5px 10px',
+                                cursor: 'pointer',
+                            }}
+                        >Edit Damage</button>)}
             <div>
                 <p><strong>Objectname:</strong> {damageDetails.object.objectname}</p>
                 <p><strong>Adress:</strong> {damageDetails.adress.adress}</p>

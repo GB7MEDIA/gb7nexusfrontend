@@ -4,6 +4,10 @@ import { useNavigate } from 'react-router-dom';
 import { getTenantByIdAPI, getTenantByUserIdAPI } from "../../axios/tenant";
 import { getAllObjectsAPI, getObjectByIdAPI, getObjectAdressesByObjectIdAPI } from "../../axios/object";
 import { createDamageAPI } from "../../axios/damage";
+import { uploadOneFile } from "../../axios/upload";
+
+import "../../css/general.css";
+import "../../css/form.css";
 
 export const CreateDamageScreen = ({ isLoggedIn, currentUserId, currentUser }) => {
     const navigate = useNavigate();
@@ -23,8 +27,8 @@ export const CreateDamageScreen = ({ isLoggedIn, currentUserId, currentUser }) =
             if (currentUserId) {
                 try {
                     const tenantIdData = await getTenantByUserIdAPI(currentUserId);
-                    if (tenantIdData.data.data.tenantId.response[0].tenantId) {
-                        const tenantData = await getTenantByIdAPI(tenantIdData.data.data.tenantId.response[0].tenantId);
+                    if (tenantIdData.data.data.tenantId.tenantId) {
+                        const tenantData = await getTenantByIdAPI(tenantIdData.data.data.tenantId.tenantId);
                         const objectData = await getObjectByIdAPI(tenantData.data.data.tenant.objectId);
                         setObject(objectData.data.data.object);
                         setIsTenantObjectId(true);
@@ -53,6 +57,7 @@ export const CreateDamageScreen = ({ isLoggedIn, currentUserId, currentUser }) =
     const [page, setPage] = useState(1);
     const [formData, setFormData] = useState({
         title: '',
+        file: [],
         object: {
             _id: '',
             objectname: ''
@@ -107,7 +112,11 @@ export const CreateDamageScreen = ({ isLoggedIn, currentUserId, currentUser }) =
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setFormData({ ...formData, [name]: value });
+        if (name === "file") {
+            setFormData({ ...formData, "file": e.target.files[0] });
+        } else {
+            setFormData({ ...formData, [name]: value });
+        }
     };
 
     const handleCreateDamage = async (e) => {
@@ -142,7 +151,14 @@ export const CreateDamageScreen = ({ isLoggedIn, currentUserId, currentUser }) =
                 return;
             }
 
-            const response = await createDamageAPI(formData.title, formData.object._id, formData.adress._id, formData.floorOrElevator, formData.remarks);
+            const newFormData = new FormData();
+
+            newFormData.append("file", formData.file);
+
+            const uploadResponse = await uploadOneFile(newFormData);
+            const mediaUrl = uploadResponse.data.data.mediaUrl;
+
+            const response = await createDamageAPI(formData.title, mediaUrl, formData.object._id, formData.adress._id, formData.floorOrElevator, formData.remarks);
             if (response) {
                 navigate(`/damages`);
             }
@@ -155,12 +171,29 @@ export const CreateDamageScreen = ({ isLoggedIn, currentUserId, currentUser }) =
             {page === 1 && (
                 <form>
                     <h2>Title</h2><br />
-                    <input type="text" name="title" onChange={handleChange} /><br />
+                    <input
+                        type="text"
+                        name="title"
+                        placeholder="Title ..."
+                        onChange={handleChange}
+                    /><br />
                     <button type="button" onClick={nextPage}>Next</button>
                     {error && (<p>{error}</p>)}
                 </form>
             )}
             {page === 2 && (
+                <form>
+                    <h2>Image</h2><br />
+                    <input
+                        type="file"
+                        name="file"
+                        onChange={handleChange}
+                    /><br />
+                    <button type="button" onClick={nextPage}>Next</button>
+                    {error && (<p>{error}</p>)}
+                </form>
+            )}
+            {page === 3 && (
                 <form>
                     <h2>Where are you located?</h2><br />
                     <select
@@ -177,8 +210,9 @@ export const CreateDamageScreen = ({ isLoggedIn, currentUserId, currentUser }) =
                         ) : (<option disabled>No Objects available</option>)}
                     </select><br />
                     <select name="adress"
-                    value={JSON.stringify(formData.adress)}
-                    onChange={ (e) => setFormData({...formData, adress: JSON.parse(e.target.value) }) }>
+                        value={JSON.stringify(formData.adress)}
+                        onChange={ (e) => setFormData({...formData, adress: JSON.parse(e.target.value) }) }
+                    >
                         <option value="">Select Address</option>
                         {objectAdresses.length > 0 ? (
                             objectAdresses.map((objectAdress) => (
@@ -198,21 +232,31 @@ export const CreateDamageScreen = ({ isLoggedIn, currentUserId, currentUser }) =
                             <option disabled>No floors exist ...</option>
                         )}
                     </select><br />
-                    <button type="button" onClick={prevPage}>Back</button>
-                    <button type="button" onClick={nextPage}>Next</button>
-                    {error && (<p>{error}</p>)}
-                </form>
-            )}
-            {page === 3 && (
-                <form>
-                    <h2>Remarks</h2><br />
-                    <textarea name="remarks" placeholder="Remarks ..." value={formData.remarks} onChange={handleChange}></textarea><br />
-                    <button type="button" onClick={prevPage}>Back</button>
-                    <button type="button" onClick={nextPage}>Next</button>
+                    <div className={`button_div`}>
+                        <button type="button" onClick={prevPage}>Back</button>
+                        <button type="button" onClick={nextPage}>Next</button>
+                    </div>
+
                     {error && (<p>{error}</p>)}
                 </form>
             )}
             {page === 4 && (
+                <form>
+                    <h2>Remarks</h2><br />
+                    <textarea
+                        name="remarks"
+                        placeholder="Remarks ..."
+                        value={formData.remarks}
+                        onChange={handleChange}
+                    ></textarea><br />
+                    <div className={`button_div`}>
+                        <button type="button" onClick={prevPage}>Back</button>
+                        <button type="button" onClick={nextPage}>Next</button>
+                    </div>
+                    {error && (<p>{error}</p>)}
+                </form>
+            )}
+            {page === 5 && (
                 <form onSubmit={handleCreateDamage}>
                     <h2>Summary</h2><br />
                     <p>Title: {formData.title}</p><br />
@@ -220,8 +264,10 @@ export const CreateDamageScreen = ({ isLoggedIn, currentUserId, currentUser }) =
                     <p>Address: {formData.adress.adress}</p><br />
                     <p>Floor or Elevator: {formData.floorOrElevator}</p><br />
                     <p>Remarks: {formData.remarks}</p><br />
-                    <button type="button" onClick={prevPage}>Back</button>
-                    <input type="submit" value="Report" />
+                    <div className={`button_div`}>
+                        <button type="button" onClick={prevPage}>Back</button>
+                        <input type="submit" value="Report" />
+                    </div>
                     {error && (<p>{error}</p>)}
                 </form>
             )}
