@@ -43,9 +43,9 @@ export const DashboardScreen = ({ isLoggedIn, isAdmin, currentUserId }) => {
 
   const [data, setData] = useState({
     objects: [],
-    object: null,
+    object: [],
     tenants: [],
-    tenant: null,
+    tenant: [],
     users: [],
     damages: [],
     channels: [],
@@ -59,54 +59,45 @@ export const DashboardScreen = ({ isLoggedIn, isAdmin, currentUserId }) => {
   }, [isLoggedIn, navigate]);
 
   useEffect(() => {
-    const fetchData = async () => {
-      if (isAdmin) {
-        const [objectsData, tenantsData, usersData, damagesData, channelsData, productsData] = await Promise.all([
-          getAllObjectsAPI(),
-          getAllTenantsAPI(),
-          getAllUsersAPI(),
-          getAllDamagesAPI(),
-          getAllChannelsAPI(),
-          getAllProductsAPI(),
-        ]);
-        setData((prevState) => ({
-          ...prevState,
-          objects: objectsData.data.data.objects,
-          tenants: tenantsData.data.data.tenants,
-          users: usersData.data.response.data.data.users,
-          damages: damagesData.data.data.damages,
-          channels: channelsData.data.data.channels,
-          products: productsData.data.data.products,
-        }));
-      } else {
-        const tenantIdData = await getTenantByUserIdAPI(currentUserId);
-        if (tenantIdData.data.data.tenantId.tenantId) {
-          const tenantData = await getTenantByIdAPI(tenantIdData.data.data.tenantId.tenantId);
-          if (tenantData.data.data.tenant.object.id) {
-            const objectData = await getObjectByIdAPI(tenantData.data.data.tenant.object.id);
-            setData((prevState) => ({
-                ...prevState,
-                tenant: tenantData.data.data.tenant,
-                object: objectData.data.data.object,
-            }));
-          }
-        }
-        const [damagesData, channelsData, productsData] = await Promise.all([
-          getAllDamagesByUserIdAPI(currentUserId),
-          getAllChannelsByUserIdAPI(currentUserId),
-          getAllProductsAPI(),
-        ]);
-        setData((prevState) => ({
-          ...prevState,
-          damages: damagesData.data.data.damages,
-          channels: channelsData.data.data.channels,
-          products: productsData.data.data.products,
-        }));
-      }
-    };
-
     if (isLoggedIn && currentUserId) {
-      fetchData();
+        (async () => {
+            if (isAdmin) {
+                const objectsData = await getAllObjectsAPI();
+                const tenantsData = await getAllTenantsAPI();
+                const usersData = await getAllUsersAPI();
+                const damagesData = await getAllDamagesAPI();
+                const channelsData = await getAllChannelsAPI();
+                const productsData = await getAllProductsAPI();
+                setData({
+                    objects: objectsData.data.data.objects ?? [],
+                    object: [],
+                    tenants: tenantsData.data.data.tenants ?? [],
+                    tenant: [],
+                    users: usersData.data.data.users ?? [],
+                    damages: damagesData.data.data.damages ?? [],
+                    channels: channelsData.data.data.channels ?? [],
+                    products: productsData.data.data.products ?? [],
+                });
+            } else {
+                const tenantIdData = await getTenantByUserIdAPI(currentUserId);
+                const tenantId = tenantIdData.data.data.tenantId.tenantId;
+                const tenantData = await getTenantByIdAPI(tenantId);
+                const objectData = await getObjectByIdAPI(tenantData.data.data.tenant.object.id);
+                const damagesData = await getAllDamagesByUserIdAPI(currentUserId);
+                const channelsData = await getAllChannelsByUserIdAPI(currentUserId);
+                const productsData = await getAllProductsAPI();
+                setData({
+                    objects: [],
+                    object: objectData.data.data.object ?? [],
+                    tenants: [],
+                    tenant: tenantData.data.data.tenant ?? [],
+                    users: [],
+                    damages: damagesData.data.data.damages ?? [],
+                    channels: channelsData.data.data.channels ?? [],
+                    products: productsData.data.data.products ?? [],
+                });
+            }
+        })()
     }
   }, [isLoggedIn, isAdmin, currentUserId]);
 
@@ -139,7 +130,7 @@ export const DashboardScreen = ({ isLoggedIn, isAdmin, currentUserId }) => {
     }
   }
 
-  const renderAdminDashboard = () => {
+ const renderAdminDashboard = () => {
     return (
       <>
         <h2>Admin Dashboard</h2>
@@ -292,7 +283,7 @@ export const DashboardScreen = ({ isLoggedIn, isAdmin, currentUserId }) => {
             <tbody>
                 <tr key={data['tenant'].id}>
                     <td>{data['tenant'].companyname}</td>
-                    <td><Link to={`/objects/${data['tenant'].object.id}`}>{data['tenant'].object.objectname}</Link></td>
+                    {data['tenant'].object && (<td><Link to={`/objects/${data['tenant'].object.id}`}>{data['tenant'].object.objectname}</Link></td>)}
                     <td>
                         <button
                             onClick={() => navigate(`/tenants/${data['tenant'].id}`)}
@@ -312,7 +303,7 @@ export const DashboardScreen = ({ isLoggedIn, isAdmin, currentUserId }) => {
     <>
       {isLoggedIn && (
         <>
-          {isAdmin ? renderAdminDashboard() : renderUserDashboard()}
+          {isAdmin ? renderAdminDashboard():renderUserDashboard()}
           <h3>Damages:</h3>
                 {data['damages'].length > 0 ? (
                     <table>
@@ -403,6 +394,11 @@ export const DashboardScreen = ({ isLoggedIn, isAdmin, currentUserId }) => {
                                 <td>{product.description}</td>
                                 <td>{product.user.name}</td>
                                 <td>
+                                    {(product.user.id !== currentUserId) && (<button
+                                        onClick={ () => navigate(`/products/${product.id}`) }
+                                    >
+                                        Show Product
+                                    </button>)}
                                     {(product.user.id !== currentUserId) && (<button
                                         onClick={ () => handleInterestedInProduct(product.id, product.title, product.user.id, currentUserId) }
                                     >

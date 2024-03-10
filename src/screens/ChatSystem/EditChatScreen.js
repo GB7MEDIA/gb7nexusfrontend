@@ -28,7 +28,7 @@ export const EditChatScreen = ({ isLoggedIn }) => {
     useEffect(() => {
         (async () => {
             const response = await getAllUsersAPI();
-            setPotentialUsers(response.data.response.data.data.users);
+            setPotentialUsers(response.data.data.users);
         })();
     }, []);
 
@@ -71,7 +71,7 @@ export const EditChatScreen = ({ isLoggedIn }) => {
             }
 
             return [
-                userObj._id,
+                userObj.id,
                 !!isChatAdmin[username]
             ];
         }).filter(user => user !== null);

@@ -46,7 +46,7 @@ export const EditTenantScreen = ({ isLoggedIn, isAdmin }) => {
             if (tenantId) {
                 const tenantData = await getTenantByIdAPI(tenantId);
                 setCompanyname(tenantData.data.data.tenant.companyname);
-                setObjectId(tenantData.data.data.tenant.objectId);
+                setObjectId(tenantData.data.data.tenant.object.id);
             }
         })()
     }, [tenantId, setCompanyname, setObjectId]);
@@ -65,7 +65,9 @@ export const EditTenantScreen = ({ isLoggedIn, isAdmin }) => {
         }
 
         const response = await editTenantByIdAPI(tenantId, companyname, objectId);
-        console.log(response);
+        if (response) {
+            navigate('/tenants');
+        }
     };
 
     return (

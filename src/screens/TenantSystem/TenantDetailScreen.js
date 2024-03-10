@@ -42,7 +42,7 @@ export const TenantDetailScreen = ({ isLoggedIn, isAdmin, currentUserId }) => {
                                 padding: '5px 10px',
                                 cursor: 'pointer',
                             }}
-                        >Edit Damage</button>)}
+                        >Edit Tenant</button>)}
             {tenant.object && (<p>Object: {tenant.object.objectname}</p>)}
             {tenantUsers && tenantUsers.length > 0 ? (
             <>

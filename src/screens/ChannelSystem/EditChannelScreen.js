@@ -28,7 +28,7 @@ export const EditChannelScreen = ({ isLoggedIn, currentUserId }) => {
     useEffect(() => {
         (async () => {
             const response = await getAllUsersAPI();
-            setPotentialUsers(response.data.response.data.data.users);
+            setPotentialUsers(response.data.data.users);
         })();
     }, [setPotentialUsers]);
 
@@ -70,7 +70,7 @@ export const EditChannelScreen = ({ isLoggedIn, currentUserId }) => {
             }
 
             return [
-                userObj._id,
+                userObj.id,
                 !!isChannelAdmin[username]
             ];
         }).filter(user => user !== null);

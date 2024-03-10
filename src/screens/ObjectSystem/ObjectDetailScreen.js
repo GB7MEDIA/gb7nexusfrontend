@@ -95,7 +95,9 @@ export const ObjectDetailScreen = ({ isLoggedIn, isAdmin }) => {
             return;
         }
 
-        const response = await editObjectAdressByIdAPI(adressId, adress, floors);
+        const floorsArray = floors.split(",");
+
+        const response = await editObjectAdressByIdAPI(adressId, adress, floorsArray);
         console.log(response);
     }
 

@@ -18,7 +18,7 @@ export const UsersScreen = ({ isLoggedIn, isAdmin, currentUserId }) => {
             const fetchUsers = async () => {
                 try {
                     const usersData = await getAllUsersAPI();
-                    setUsers(usersData.data.response.data.data.users);
+                    setUsers(usersData.data.data.users);
                 } catch (error) {
                     console.error("Failed to fetch users", error);
                 }

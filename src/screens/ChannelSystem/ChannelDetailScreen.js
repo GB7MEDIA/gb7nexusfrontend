@@ -122,7 +122,7 @@ export const ChannelDetailScreen = ({ isLoggedIn, currentUserId }) => {
         {isLoggedIn && (
         <>
             <h1>{channel.channelname}</h1>
-            <p>Channel created by {channel.createdBy.name}</p>
+            <p>Channel created by {channel.createdBy?.name}</p>
             {isChannelAdmin && (<Link
                 to={`/channels/${channelId}/edit`}
                 style={{

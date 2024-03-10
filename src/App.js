@@ -9,7 +9,7 @@ import {
   CreateDamageScreen, EditDamageScreen, DamagesScreen, DamageDetailScreen,
   CreateChatScreen, EditChatScreen, ChatsScreen, ChatDetailScreen,
   CreateChannelScreen, EditChannelScreen, ChannelsScreen, ChannelDetailScreen,
-  CreateProductScreen, EditProductScreen, ProductsScreen,
+  CreateProductScreen, EditProductScreen, ProductsScreen, ProductDetailScreen,
   DashboardScreen,
   TestScreen
 } from "./screens/index";
@@ -45,9 +45,7 @@ export const App = () => {
     (async () => {
       if (currentUserId) {
         const response = await getUserByIdAPI(currentUserId);
-        if (response.success === true) {
-          setCurrentUser(response.data.response.data.data.user);
-        }
+        setCurrentUser(response.data.data.user);
       }
     })();
 }, [currentUserId, setCurrentUser]);
@@ -107,6 +105,7 @@ export const App = () => {
       <Route path="/products/create" element={<CreateProductScreen isLoggedIn={isLoggedIn} />} />
       <Route path="/products/:productId/edit" element={<EditProductScreen isLoggedIn={isLoggedIn} />} />
       <Route path="/products" element={<ProductsScreen isLoggedIn={isLoggedIn} currentUserId={currentUserId} />} />
+      <Route path="/products/:productId" element={<ProductDetailScreen isLoggedIn={isLoggedIn} />} />
       
       <Route path="/" element={<DashboardScreen isLoggedIn={isLoggedIn} isAdmin={isAdmin} currentUserId={currentUserId} />} />
 

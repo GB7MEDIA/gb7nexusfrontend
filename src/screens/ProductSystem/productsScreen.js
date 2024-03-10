@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { getAllProductsAPI } from "../../axios/marketPlace";
+import { getAllProductsAPI, deleteProductByIdAPI } from "../../axios/marketPlace";
 import { createChatAPI } from "../../axios/chat";
 
 import "../../css/general.css";
@@ -45,10 +45,16 @@ export const ProductsScreen = ({ isLoggedIn, currentUserId }) => {
         }
       }
 
+      const handleDeleteProduct = async (productId) => {
+        const response = await deleteProductByIdAPI(productId);
+        if (response) {
+            navigate('/');
+        }
+      }
+
     return (
         <>
-            <h1>Damages</h1>
-            <h3>Products:</h3>
+            <h1>Products</h1>
                 {products.length > 0 ? (
                     <table>
                         <thead>
@@ -67,6 +73,11 @@ export const ProductsScreen = ({ isLoggedIn, currentUserId }) => {
                                 <td>{product.user.name}</td>
                                 <td>
                                     {(product.user.id !== currentUserId) && (<button
+                                        onClick={ () => navigate(`/products/${product.id}`) }
+                                    >
+                                        Show Product
+                                    </button>)}
+                                    {(product.user.id !== currentUserId) && (<button
                                         onClick={ () => handleInterestedInProduct(product.id, product.title, product.user.id, currentUserId) }
                                     >
                                         Interested
@@ -75,6 +86,11 @@ export const ProductsScreen = ({ isLoggedIn, currentUserId }) => {
                                         onClick={ () => navigate(`/products/${product.id}/edit`) }
                                     >
                                         Edit Product
+                                    </button>)}
+                                    {(product.user.id === currentUserId) && (<button
+                                        onClick={ () => handleDeleteProduct(product.id) }
+                                    >
+                                        Delete Product
                                     </button>)}
                                 </td>
                             </tr>

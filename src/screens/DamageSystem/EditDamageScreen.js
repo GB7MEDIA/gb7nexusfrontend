@@ -60,9 +60,9 @@ export const EditDamageScreen= ({ isLoggedIn, isAdmin }) => {
             if (damageId) {
                 try {
                     const damageData = await getDamageByIdAPI(damageId);
-                    const addressesData = await getObjectAdressesByObjectIdAPI(damageData.data.data.object.id);
+                    const addressesData = await getObjectAdressesByObjectIdAPI(damageData.data.data.damage.object.id);
                     setObjectAdresses(addressesData.data.data.adresses);
-                    const selectedAddress = addressesData.data.data.adresses.filter(adress => adress._id === damageData.data.data.damage.adressId);
+                    const selectedAddress = addressesData.data.data.adresses.filter(adress => adress._id === damageData.data.data.damage.adress.id);
                     setFloors(selectedAddress[0].floors);
 
                     setFormData(currentFormData => ({
@@ -71,7 +71,7 @@ export const EditDamageScreen= ({ isLoggedIn, isAdmin }) => {
                         title: damageData.data.data.damage.title,
                         object: {
                             id: damageData.data.data.damage.object.id,
-                            objectname: damageData.data.data.damage.objectname
+                            objectname: damageData.data.data.damage.object.objectname
                         },
                         adress: {
                             id: damageData.data.data.damage.adress.id,
@@ -118,7 +118,7 @@ export const EditDamageScreen= ({ isLoggedIn, isAdmin }) => {
                 return;
             }
 
-            const response = await editDamageByIdAPI(damageId, formData.title, formData.floorOrElevator, formData.remarks, formData.damageStatus);
+            const response = await editDamageByIdAPI(damageId, formData.title, formData.remarks, formData.damageStatus);
             if (response.status === 200) {
                 navigate(`/damages/${damageId}`);
             }
@@ -148,7 +148,7 @@ export const EditDamageScreen= ({ isLoggedIn, isAdmin }) => {
                         <option value="">Select Object</option>
                         {objects.length > 0 ? (
                             objects.map((object) => (
-                                <option key={object._id} value={JSON.stringify({ _id: object._id, objectname: object.objectname })}>{object.objectname}</option>
+                                <option key={object._id} value={JSON.stringify({ id: object._id, objectname: object.objectname })}>{object.objectname}</option>
                             ))
                         ) : (<option disabled>No Objects available</option>)}
                     </select><br />
@@ -160,7 +160,7 @@ export const EditDamageScreen= ({ isLoggedIn, isAdmin }) => {
                         <option value="">Select Address</option>
                         {objectAdresses.length > 0 ? (
                             objectAdresses.map((objectAdress) => (
-                                <option key={objectAdress._id} value={JSON.stringify({ _id: objectAdress._id, adress: objectAdress.adress })}>{objectAdress.adress}</option>
+                                <option key={objectAdress._id} value={JSON.stringify({ id: objectAdress._id, adress: objectAdress.adress })}>{objectAdress.adress}</option>
                             ))
                         ) : (
                             <option disabled>No object adresses exist ...</option>

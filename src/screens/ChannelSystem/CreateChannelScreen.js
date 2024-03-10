@@ -32,7 +32,7 @@ export const CreateChannelScreen = ({ isLoggedIn, isAdmin }) => {
     useEffect(() => {
         (async () => {
             const response = await getAllUsersAPI();
-            setPotentialUsers(response.data.response.data.data.users);
+            setPotentialUsers(response.data.data.users);
         })();
     }, []);
 
@@ -54,7 +54,7 @@ export const CreateChannelScreen = ({ isLoggedIn, isAdmin }) => {
             }
 
             return [
-                userObj._id,
+                userObj.id,
                 !!isChannelAdmin[username]
             ];
         }).filter(user => user !== null);

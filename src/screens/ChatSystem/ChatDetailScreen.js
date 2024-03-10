@@ -107,24 +107,64 @@ export const ChatDetailScreen = ({ isLoggedIn, currentUserId }) => {
 
     return (
         <>
+        {isLoggedIn && (<>
             <h1>{chat.chatname}</h1>
-            <p>Chat created by {chat.createdBy.name}</p>
-            {isChatAdmin && (<Link to={`/chats/${chatId}/edit`}>Edit Chat</Link>)}
-            {isChatAdmin && (<button onClick={() => handleDeleteChat(chatId)}>Delete</button>)}
+            <p>Chat created by {chat.createdBy?.name}</p>
+            {isChatAdmin && (<Link
+            style={{
+                marginRight: '10px',
+                backgroundColor: '#333',
+                color: '#ffffff',
+                border: 'none',
+                padding: '5px 10px',
+                cursor: 'pointer',
+                textDecoration: 'none'
+            }}
+             to={`/chats/${chatId}/edit`}>Edit Chat</Link>)}
+             {isChatAdmin && (<button 
+            style={{
+                marginRight: '10px',
+                backgroundColor: '#333',
+                color: '#ffffff',
+                border: 'none',
+                padding: '5px 10px',
+                cursor: 'pointer',
+                textDecoration: 'none'
+            }}
+            onClick={() => handleDeleteChat(chatId)}>Delete</button>)}
             <ul>
                 {chatMessages.length > 0 ? (
                     chatMessages.map(message => (
                         <li key={message.id}>
                             <p><strong>{message.user.name}</strong> - {message.text}</p>
-                            {currentUserId === message.user.id && <button onClick={() => handleEditClick(message.id, message.text)}>Edit</button>}
-                            {currentUserId === message.user.id && <button onClick={() => handleDeleteMessage(message._id)}>Delete</button>}
+                            {currentUserId === message.user.id && <button
+                            style={{
+                                marginRight: '10px',
+                                backgroundColor: '#333',
+                                color: '#ffffff',
+                                border: 'none',
+                                padding: '5px 10px',
+                                cursor: 'pointer',
+                                textDecoration: 'none'
+                            }}
+                            onClick={() => handleEditClick(message.id, message.text)}>Edit</button>}
+                            {currentUserId === message.user.id && <button
+                            style={{
+                                marginRight: '10px',
+                                backgroundColor: '#333',
+                                color: '#ffffff',
+                                border: 'none',
+                                padding: '5px 10px',
+                                cursor: 'pointer',
+                                textDecoration: 'none'
+                            }}
+                            onClick={() => handleDeleteMessage(message._id)}>Delete</button>}
                         </li>
                     ))
                 ) : (
                     <p>No messages in this chat.</p>
                 )}
             </ul>
-
             {(chat.chatrights === "everyone" || (chat.chatrights === "admins" && isChatAdmin)) && (
                 <form onSubmit={editState ? handleEditMessage : handleSendMessage}>
                     <input type="text" placeholder="Type your message..." value={chatMessage} onChange={(e) => setChatMessage(e.target.value)} />
@@ -132,6 +172,7 @@ export const ChatDetailScreen = ({ isLoggedIn, currentUserId }) => {
                     {error && (<p>{error}</p>)}
                 </form>
             )}
+        </>)}
         </>
     );
 };

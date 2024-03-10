@@ -19,7 +19,7 @@ export const DamageDetailScreen = ({ isLoggedIn, isAdmin }) => {
     const [damageDetails, setDamageDetails] = useState({
         damageId: '',
         title: '',
-        files: '',
+        file: '',
         object: {
             _id: '',
             objectname: ''
@@ -38,13 +38,12 @@ export const DamageDetailScreen = ({ isLoggedIn, isAdmin }) => {
             if (damageId) {
                 try {
                     const damageData = await getDamageByIdAPI(damageId);
-                    console.log(damageData.data.data.damage);
 
                     setDamageDetails(currentFormData => ({
                         ...currentFormData,
                         damageId: damageId,
                         title: damageData.data.data.damage.title,
-                        files: damageData.data.data.damage.files,
+                        file: damageData.data.data.damage.file,
                         object: {
                             id: damageData.data.data.damage.object.id,
                             objectname: damageData.data.data.damage.object.objectname
@@ -80,6 +79,7 @@ export const DamageDetailScreen = ({ isLoggedIn, isAdmin }) => {
                             }}
                         >Edit Damage</button>)}
             <div>
+                {damageDetails.file && (<img src={`http://localhost:4000/uploads/${damageDetails.file}`} />)}
                 <p><strong>Objectname:</strong> {damageDetails.object.objectname}</p>
                 <p><strong>Adress:</strong> {damageDetails.adress.adress}</p>
                 <p><strong>Floor/Elevator:</strong> {damageDetails.floorOrElevator}</p>

@@ -23,8 +23,8 @@ export const ProfileScreen = ({ isLoggedIn, currentUserId, setIsLoggedIn, setIsA
         const fetchData = async () => {
             try {
                 const userResponse = await getUserByIdAPI(userId);
-                if (userResponse.success) {
-                    setUser(userResponse.data.response.data.data.user);
+                if (userResponse) {
+                    setUser(userResponse.data.data.user);
                 }
 
                 const damagesResponse = await getAllDamagesByUserIdAPI(userId);

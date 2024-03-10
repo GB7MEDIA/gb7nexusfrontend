@@ -37,7 +37,7 @@ export const EditUserScreen = ({ isLoggedIn, isAdmin, currentUserId }) => {
                 const tenantId = tenantData.data.data.tenantId.tenantId;
 
                 const userResponse = await getUserByIdAPI(userId);
-                const user = userResponse.data.response.data.data.user;
+                const user = userResponse.data.data.user;
                 setUserDetails({
                     name: user.name,
                     email: user.email,
@@ -77,8 +77,10 @@ export const EditUserScreen = ({ isLoggedIn, isAdmin, currentUserId }) => {
         }
 
         try {
-            await editUserByIdAPI(userId, userDetails);
-            navigate('/users');
+            const response = await editUserByIdAPI(userId, userDetails.name, userDetails.email, userDetails.phonenumber, userDetails.twoFactorAuthType, userDetails.role);
+            if (response) {
+                navigate('/users');
+            }
         } catch (error) {
             setError('Failed to update user.');
             console.error("Update user error:", error);

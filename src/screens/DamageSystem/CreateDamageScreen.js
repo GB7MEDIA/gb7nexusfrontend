@@ -9,7 +9,7 @@ import { uploadOneFile } from "../../axios/upload";
 import "../../css/general.css";
 import "../../css/form.css";
 
-export const CreateDamageScreen = ({ isLoggedIn, currentUserId, currentUser }) => {
+export const CreateDamageScreen = ({ isLoggedIn, currentUserId }) => {
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -29,9 +29,11 @@ export const CreateDamageScreen = ({ isLoggedIn, currentUserId, currentUser }) =
                     const tenantIdData = await getTenantByUserIdAPI(currentUserId);
                     if (tenantIdData.data.data.tenantId.tenantId) {
                         const tenantData = await getTenantByIdAPI(tenantIdData.data.data.tenantId.tenantId);
-                        const objectData = await getObjectByIdAPI(tenantData.data.data.tenant.objectId);
-                        setObject(objectData.data.data.object);
-                        setIsTenantObjectId(true);
+                        if (tenantData.data.data.tenant.object.id) {
+                            const objectData = await getObjectByIdAPI(tenantData.data.data.tenant.object.id);
+                            setObject(objectData.data.data.object);
+                            setIsTenantObjectId(true);
+                        }
                     }
                 } catch (error) {
                     console.error("Error fetching tenant data:", error);
@@ -128,14 +130,14 @@ export const CreateDamageScreen = ({ isLoggedIn, currentUserId, currentUser }) =
                 return;
             }
             if (!formData.object) {
-                if (!formData.object._id) {
+                if (!formData.object.id) {
                     setError('The object id can not be left empty!');
                     return;
                 }
             }
 
             if (!formData.adress) {
-                if (!formData.adress._id) {
+                if (!formData.adress.id) {
                     setError('The adress id can not be left empty!');
                     return;
                 }
@@ -260,6 +262,7 @@ export const CreateDamageScreen = ({ isLoggedIn, currentUserId, currentUser }) =
                 <form onSubmit={handleCreateDamage}>
                     <h2>Summary</h2><br />
                     <p>Title: {formData.title}</p><br />
+                    <p>Image: {formData.file.name}</p><br />
                     <p>Object: {formData.object.objectname}</p><br />
                     <p>Address: {formData.adress.adress}</p><br />
                     <p>Floor or Elevator: {formData.floorOrElevator}</p><br />

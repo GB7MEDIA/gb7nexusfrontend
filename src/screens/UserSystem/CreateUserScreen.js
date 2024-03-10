@@ -59,15 +59,10 @@ export const CreateUserScreen = ({ isLoggedIn, isAdmin }) => {
         }
 
         try {
-            await createUserAPI({
-                name: formData.name,
-                email: formData.email,
-                phonenumber: formData.phonenumber,
-                role: formData.role,
-                tenantId: formData.tenantId,
-                password: formData.password,
-            });
-            navigate('/users');
+            const response = await createUserAPI(formData.name, formData.email, formData.phonenumber, formData.role, formData.tenantId,formData.password);
+            if (response) {
+                navigate('/users');
+            }
         } catch (error) {
             setError("Failed to create user. Please try again.");
             console.error("Create user error:", error);
@@ -88,7 +83,7 @@ export const CreateUserScreen = ({ isLoggedIn, isAdmin }) => {
                 <select name="tenantId" value={formData.tenantId} onChange={handleChange}>
                     <option value="">Select Tenant</option>
                     {tenants.map(tenant => (
-                        <option key={tenant._id} value={tenant._id}>{tenant.companyname}</option>
+                        <option key={tenant.id} value={tenant.id}>{tenant.companyname}</option>
                     ))}
                 </select>
                 <input type="password" name="password" placeholder="Password ..." value={formData.password} onChange={handleChange} />

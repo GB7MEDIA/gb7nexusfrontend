@@ -59,7 +59,7 @@ export const SettingsScreen = ({ isLoggedIn, currentUser }) => {
         }
 
         try {
-            const response = await editUserByIdAPI(currentUser._id, name, email, phonenumber, twoFactorAuthType);
+            const response = await editUserByIdAPI(currentUser.id, name, email, phonenumber, twoFactorAuthType);
             console.log(response);
         } catch (error) {
             setError('Failed to update settings.');

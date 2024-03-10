@@ -108,8 +108,6 @@ export const Header = ({ isAdmin, currentUserId, currentUser, handleLogout }) =>
   return (
     <header>
       <Link onClick={toggleDropdown} to="/">Dashboard</Link>
-
-      <Link to="/upload">Upload</Link>
       
       {isAdmin && (
         <div style={{ position: 'relative' }}>

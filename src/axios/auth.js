@@ -11,7 +11,7 @@ export const loginAPI = async (email, password) => {
     }
 }
 
-export const registerAPI = async (name, email, phonenumber, tenantId, password) => {
+export const registerAPI = async (name, email, phonenumber, tenantId = "", password) => {
     try {
         const response = await axiosInstanceWithoutAuth.post(`/auth/register`, {
             name, email, phonenumber, tenantId, password
